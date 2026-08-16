@@ -18,6 +18,20 @@ public class BoardView : MonoBehaviour
         public SpriteRenderer Renderer;
         public TextMeshPro Label;
         public Animator Animator;
+
+        /// <summary>
+        /// 이 마커 밑에 깔린 바닥 레이어. 그리는 방식이 같아서 Marker 를 그대로 쓰지만 라벨은 안 만든다.
+        /// 여기 연결돼 있으면 Apply 한 번에 두 레이어가 같이 칠해져서, 불이 깜빡일 때
+        /// 그 상태에 맞는 장작까지 한꺼번에 따라온다.
+        /// 칸에 고정되지 않고 옮겨 다니는 밀리는 벽에는 연결하지 않는다.
+        /// </summary>
+        public Marker Base;
+
+        /// <summary>
+        /// 이 레이어에 적용된 오프셋. 밀리는 벽은 트윈이 위치를 통째로 덮어쓰므로
+        /// 옮겨갈 목표 칸에도 이 값을 다시 더해야 오프셋이 유지된다.
+        /// </summary>
+        public Vector2 Offset;
     }
 
     [Header("Level")]
@@ -30,6 +44,13 @@ public class BoardView : MonoBehaviour
     [Header("Floor")]
     [SerializeField] Color _floorLight = new Color(0.3f, 0.3f, 0.3f);
     [SerializeField] Color _floorDark = new Color(0.2f, 0.2f, 0.2f);
+
+    [Tooltip("받침을 따로 지정하지 않은 칸에 깔리는 바닥 그림. 비우면 예전처럼 Square 에 체커보드 색만 칠한다. " +
+             "넣으면 그 위에 체커보드 색이 곱해지므로, 원본 색 그대로 쓰려면 위의 색 둘을 흰색으로 둔다")]
+    [SerializeField] Sprite _floorSprite;
+
+    [Tooltip("빈 칸 바닥이 움직여야 하면 컨트롤러를 넣는다")]
+    [SerializeField] RuntimeAnimatorController _floorController;
 
     [Header("Tile Visuals")]
     [SerializeField] TileVisual _wall = new TileVisual { color = new Color(0.6f, 0.6f, 0.65f) };
@@ -73,6 +94,12 @@ public class BoardView : MonoBehaviour
     /// 같은 키를 두 번 쓸 수 없으니 별도로 관리한다.
     /// </summary>
     readonly Dictionary<Vector2Int, Marker> _pushableMarkers = new Dictionary<Vector2Int, Marker>();
+
+    /// <summary>
+    /// 칸마다 하나씩 깔리는 바닥. 마커 밑에 있고 빈 칸에도 있으므로 맵 전체가 여기 들어간다.
+    /// 대부분은 마커의 Base 를 통해 같이 칠해지고, 마커가 사라진 칸을 되돌릴 때만 여기서 직접 찾는다.
+    /// </summary>
+    readonly Dictionary<Vector2Int, Marker> _bases = new Dictionary<Vector2Int, Marker>();
 
     public Vector2Int SpawnCell => _level.spawn;
 
@@ -182,8 +209,10 @@ public class BoardView : MonoBehaviour
         var slide = DOTween.Sequence();
         foreach (var step in path)
         {
+            // 목표 위치에 오프셋을 다시 더한다. 칸 좌표만 넣으면 벽이 움직이는 순간
+            // 인스펙터에서 맞춰 둔 오프셋이 풀려 칸 중앙으로 튄다.
             slide.Append(marker.Renderer.transform
-                .DOLocalMove(new Vector3(step.x, step.y, 0f), moveDuration)
+                .DOLocalMove(new Vector3(step.x + marker.Offset.x, step.y + marker.Offset.y, 0f), moveDuration)
                 .SetEase(Ease.Linear));
         }
 
@@ -240,6 +269,8 @@ public class BoardView : MonoBehaviour
 
         _map.ExtinguishFireTile(cell);
 
+        // Apply 가 두 레이어를 같이 칠하므로 Doused Fire 의 Base 에 탄 장작을 넣어두면
+        // 불만 꺼지는 게 아니라 밑의 장작까지 같이 바뀐다.
         if (_markers.TryGetValue(cell, out var marker)) Apply(marker, _dousedFire, cell);
     }
 
@@ -252,7 +283,10 @@ public class BoardView : MonoBehaviour
     public void MeltIce(int turn)
     {
         foreach (var cell in _map.MeltIce(turn))
+        {
             if (_markers.TryGetValue(cell, out var marker)) marker.Renderer.gameObject.SetActive(false);
+            ResetBase(cell);   // 얼음의 받침이 남으면 안 되므로 빈 칸 바닥으로 되돌린다
+        }
     }
 
     /// <summary>
@@ -295,6 +329,8 @@ public class BoardView : MonoBehaviour
 
         _map.SetTile(cell, TileType.Floor);
         if (_markers.TryGetValue(cell, out var marker)) marker.Renderer.gameObject.SetActive(false);
+
+        ResetBase(cell);   // 벽의 받침이 남으면 안 되므로 빈 칸 바닥으로 되돌린다
         return true;
     }
 
@@ -304,6 +340,8 @@ public class BoardView : MonoBehaviour
         if (_map.Get(cell) != TileType.Water) return;
 
         _map.SetTile(cell, TileType.Frozen);
+
+        // Apply 가 두 레이어를 같이 칠하므로 얼어붙은 물의 받침도 여기서 따라온다.
         if (_markers.TryGetValue(cell, out var marker)) Apply(marker, _frozen, cell);
     }
 
@@ -331,7 +369,7 @@ public class BoardView : MonoBehaviour
             for (int x = 0; x < _map.Width; x++)
             {
                 var cell = new Vector2Int(x, y);
-                SpawnFloor(container, cell, (x + y) % 2 == 0 ? _floorDark : _floorLight);
+                SpawnBase(container, cell);
 
                 // 밀리는 벽은 _tiles 밖에 있어서 Get 으로는 안 잡힌다. 밑의 타일과 함께 그린다.
                 if (_map.HasPushableWall(cell)) SpawnPushableMarker(container, cell);
@@ -372,11 +410,22 @@ public class BoardView : MonoBehaviour
         }
     }
 
-    /// <summary>색 / 스프라이트 / 애니메이션 / 라벨을 한꺼번에 적용한다. 라벨과 애니메이션은 내용이 있을 때만 만든다.</summary>
+    /// <summary>
+    /// 바닥 / 위 두 레이어와 라벨을 한꺼번에 적용한다. 라벨과 애니메이션은 내용이 있을 때만 만든다.
+    /// 두 레이어를 같이 칠하므로 불이 깜빡일 때 그 상태에 맞는 장작까지 한 번에 따라온다.
+    /// </summary>
     void Apply(Marker marker, TileVisual visual, Vector2Int cell)
     {
+        if (marker.Base != null) ApplyBase(marker.Base, visual, cell);
+
+        // 바닥만 넣고 위를 비우면 위 레이어는 그리지 않는다. 장작만 남은 꺼진 불이 이 경우다.
+        // 바닥도 안 넣었으면 예전처럼 Square 에 색을 칠한 사각형이 그려진다.
+        marker.Renderer.enabled = visual.sprite != null || visual.baseSprite == null;
+
         marker.Renderer.sprite = visual.sprite != null ? visual.sprite : _square;
         marker.Renderer.color = visual.color;
+
+        Place(marker, cell, visual.offset, _markerScale * visual.scale);
 
         ApplyAnimation(marker, visual.controller);
 
@@ -452,6 +501,7 @@ public class BoardView : MonoBehaviour
     {
         _markers.Clear();
         _pushableMarkers.Clear();
+        _bases.Clear();
 
         for (int i = transform.childCount - 1; i >= 0; i--)
         {
@@ -471,39 +521,114 @@ public class BoardView : MonoBehaviour
         return go.transform;
     }
 
-    void SpawnFloor(Transform parent, Vector2Int cell, Color color)
+    /// <summary>
+    /// 칸 밑에 깔리는 바닥을 만든다. 마커와 달리 빈 칸을 포함해 모든 칸에 하나씩 생긴다.
+    /// 칸 전체를 채워야 하므로 크기는 마커와 달리 항상 1이다.
+    /// 처음에는 빈 칸 바닥으로 깔아두고, 위에 마커가 올라오면 그때 그 타일의 받침으로 덮인다.
+    /// </summary>
+    void SpawnBase(Transform parent, Vector2Int cell)
     {
-        var sr = SpawnSprite(parent, $"Cell_{cell.x}_{cell.y}", cell, 0, 1f);
-        sr.sprite = _square;
-        sr.color = color;
+        var sr = SpawnSprite(parent, $"Cell_{cell.x}_{cell.y}", cell, 0);
+        var marker = new Marker { Renderer = sr };
+        _bases[cell] = marker;
+
+        ApplyFloorBase(marker, cell);
+    }
+
+    /// <summary>
+    /// 마커 밑의 바닥을 칠한다. 받침이 지정돼 있으면 그것을, 없으면 빈 칸 바닥을 그대로 쓴다.
+    /// 벽처럼 위가 꽉 차서 밑이 안 보이는 타일은 받침을 비워두면 된다.
+    /// </summary>
+    void ApplyBase(Marker marker, TileVisual visual, Vector2Int cell)
+    {
+        if (visual.baseSprite == null)
+        {
+            ApplyFloorBase(marker, cell);
+            return;
+        }
+
+        marker.Renderer.enabled = true;
+        marker.Renderer.sprite = visual.baseSprite;
+        marker.Renderer.color = visual.baseColor;
+
+        Place(marker, cell, visual.baseOffset, visual.baseScale);
+
+        ApplyAnimation(marker, visual.baseController);
+    }
+
+    /// <summary>
+    /// 레이어를 칸 위에 놓는다. 오프셋은 칸 크기 기준이라 0.25 면 4분의 1칸 밀린다.
+    /// 라벨은 이 트랜스폼의 자식이라 오프셋과 배율을 같이 따라간다.
+    /// </summary>
+    void Place(Marker marker, Vector2Int cell, Vector2 offset, float scale)
+    {
+        marker.Offset = offset;
+
+        var t = marker.Renderer.transform;
+        t.localPosition = new Vector3(cell.x + offset.x, cell.y + offset.y, 0f);
+        t.localScale = new Vector3(scale, scale, 1f);
+    }
+
+    /// <summary>
+    /// 받침이 없는 칸의 바닥. 체커보드 색은 여기서만 곱해진다.
+    /// 받침 그림은 그 자체로 어떤 칸인지 말해주므로 칸 경계를 알려주는 격자가 필요 없고,
+    /// 색을 곱하면 원본만 흐려진다.
+    /// Floor Sprite 를 안 넣으면 Square 에 체커보드 색만 칠해져 예전 모습 그대로다.
+    /// </summary>
+    void ApplyFloorBase(Marker marker, Vector2Int cell)
+    {
+        marker.Renderer.enabled = true;
+        marker.Renderer.sprite = _floorSprite != null ? _floorSprite : _square;
+        marker.Renderer.color = (cell.x + cell.y) % 2 == 0 ? _floorDark : _floorLight;
+
+        // 빈 칸 바닥은 칸을 꽉 채워야 격자가 어긋나지 않으므로 오프셋 없이 크기 1로 고정한다.
+        Place(marker, cell, Vector2.zero, 1f);
+
+        ApplyAnimation(marker, _floorController);
+    }
+
+    /// <summary>
+    /// 마커가 사라진 칸의 바닥을 빈 칸 바닥으로 되돌린다.
+    /// 벽이 부서지거나 얼음이 녹으면 위 레이어만 없어지고 받침은 그대로 남으므로 같이 치워야 한다.
+    /// </summary>
+    void ResetBase(Vector2Int cell)
+    {
+        if (_bases.TryGetValue(cell, out var marker)) ApplyFloorBase(marker, cell);
     }
 
     void SpawnMarker(Transform parent, Vector2Int cell, TileType type)
     {
-        var sr = SpawnSprite(parent, $"{type}_{cell.x}_{cell.y}", cell, 1, _markerScale);
-        var marker = new Marker { Renderer = sr };
+        var sr = SpawnSprite(parent, $"{type}_{cell.x}_{cell.y}", cell, 1);
+
+        // 이 칸의 바닥을 물려 두면 이후 Apply 한 번으로 두 레이어가 같이 칠해진다.
+        _bases.TryGetValue(cell, out var floor);
+        var marker = new Marker { Renderer = sr, Base = floor };
         _markers[cell] = marker;
 
         Apply(marker, VisualOf(type), cell);
     }
 
-    /// <summary>밑의 타일과 그 라벨(2)까지 가려야 하므로 정렬 순서를 3으로 올린다.</summary>
+    /// <summary>
+    /// 밑의 타일과 그 라벨(2)까지 가려야 하므로 정렬 순서를 3으로 올린다.
+    /// 칸을 옮겨 다니므로 바닥은 물려주지 않는다. 바닥은 칸에 고정된 것이라 벽을 따라가면 안 되고,
+    /// 그래서 밀리는 벽의 TileVisual 은 Base 항목을 채워도 무시된다.
+    /// </summary>
     void SpawnPushableMarker(Transform parent, Vector2Int cell)
     {
-        var sr = SpawnSprite(parent, $"PushableWall_{cell.x}_{cell.y}", cell, 3, _markerScale);
+        var sr = SpawnSprite(parent, $"PushableWall_{cell.x}_{cell.y}", cell, 3);
         var marker = new Marker { Renderer = sr };
         _pushableMarkers[cell] = marker;
 
         Apply(marker, _pushableWall, cell);
     }
 
-    SpriteRenderer SpawnSprite(Transform parent, string label, Vector2Int cell, int order, float scale)
+    /// <summary>위치와 크기는 곧이어 불리는 Place 가 정하므로 여기서는 칸 위에 얹어만 둔다.</summary>
+    SpriteRenderer SpawnSprite(Transform parent, string label, Vector2Int cell, int order)
     {
         var go = new GameObject(label);
         go.hideFlags = HideFlags.DontSaveInEditor;
         go.transform.SetParent(parent, false);
         go.transform.localPosition = new Vector3(cell.x, cell.y, 0f);
-        go.transform.localScale = new Vector3(scale, scale, 1f);
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sortingOrder = order;
