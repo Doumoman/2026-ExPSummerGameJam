@@ -9,12 +9,19 @@ using UnityEngine.SceneManagement;
 public class TapToLoadScene : MonoBehaviour
 {
     [Tooltip("넘어갈 씬 이름. Build Settings 에 등록되어 있어야 한다")]
+    [SerializeField] GameObject GO_Title;
     [SerializeField] GameObject GO_StageSelect;
 
     [Tooltip("씬이 뜨자마자 직전 화면에서 누르고 있던 손가락으로 넘어가버리는 것을 막는다")]
     [SerializeField] float _inputDelay = 0.3f;
 
     bool started;
+
+    private void Start()
+    {
+        GO_Title.SetActive(true);
+        GO_StageSelect.SetActive(false);
+    }
 
     void Update()
     {
