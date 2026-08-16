@@ -14,19 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
   width: 7
   height: 10
-  spawn: {x: 3, y: 3}
+  spawn: {x: 1, y: 0}
   walls:
-  - {x: 6, y: 9}
-  - {x: 0, y: 8}
-  - {x: 4, y: 7}
-  - {x: 2, y: 6}
-  - {x: 3, y: 4}
-  - {x: 5, y: 2}
-  - {x: 1, y: 1}
+  - {x: 3, y: 9}
+  - {x: 6, y: 5}
+  - {x: 2, y: 4}
+  - {x: 3, y: 0}
   breakableWalls: []
   pushableWalls: []
   fireTiles: []
-  deadlyFireTiles: []
+  deadlyFireTiles:
+  - cell: {x: 4, y: 0}
+    activeOnEvenTurn: 0
+    alwaysActive: 1
+  - cell: {x: 6, y: 0}
+    activeOnEvenTurn: 0
+    alwaysActive: 1
   iceWalls: []
   waters: []
   nonSlipTiles: []
@@ -34,4 +37,4 @@ MonoBehaviour:
   cornerLeftUpTiles: []
   cornerRightDownTiles: []
   cornerRightUpTiles: []
-  goal: {x: 3, y: 5}
+  goal: {x: 5, y: 0}

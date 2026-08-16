@@ -32,8 +32,10 @@ MonoBehaviour:
   deadlyFireTiles:
   - cell: {x: 0, y: 3}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 4, y: 0}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   iceWalls:
   - cell: {x: 1, y: 3}
     meltTurn: 5

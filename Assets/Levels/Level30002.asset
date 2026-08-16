@@ -25,13 +25,15 @@ MonoBehaviour:
   deadlyFireTiles:
   - cell: {x: 3, y: 7}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   iceWalls:
   - cell: {x: 3, y: 6}
     meltTurn: 10
   - cell: {x: 3, y: 4}
     meltTurn: 9
   waters: []
-  nonSlipTiles: []
+  nonSlipTiles:
+  - {x: 4, y: 3}
   cornerLeftDownTiles: []
   cornerLeftUpTiles: []
   cornerRightDownTiles: []
