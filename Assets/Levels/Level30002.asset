@@ -39,3 +39,5 @@ MonoBehaviour:
   cornerRightDownTiles: []
   cornerRightUpTiles: []
   goal: {x: 0, y: 5}
+  nextSceneAsset: {fileID: 102900000, guid: cbc9638e47816f0e2ec5d24d3a0d1f8d, type: 3}
+  nextScene: Level30003

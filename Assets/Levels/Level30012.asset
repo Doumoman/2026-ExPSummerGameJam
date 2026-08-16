@@ -46,3 +46,5 @@ MonoBehaviour:
   cornerRightDownTiles: []
   cornerRightUpTiles: []
   goal: {x: 0, y: 0}
+  nextSceneAsset: {fileID: 0}
+  nextScene:

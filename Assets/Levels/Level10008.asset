@@ -59,3 +59,5 @@ MonoBehaviour:
   - {x: 2, y: 4}
   - {x: 0, y: 3}
   goal: {x: 0, y: 1}
+  nextSceneAsset: {fileID: 102900000, guid: c1fbcf72e02cb55499ccbfa1df046ecd, type: 3}
+  nextScene: Level20001
