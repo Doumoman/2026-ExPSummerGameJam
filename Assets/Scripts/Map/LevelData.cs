@@ -37,13 +37,6 @@ public class LevelData : ScriptableObject
     [Tooltip("밀리는 벽 - 부딪히면 막힐 때까지 밀려난다. 다른 타일 위에 얹히므로 밑의 타일은 남는다")]
     public List<Vector2Int> pushableWalls = new List<Vector2Int>();
 
-    [Header("불 벽 - 통과 불가, 슬라이드를 멈춘다")]
-    [Tooltip("부딪히면 HP 1")]
-    public List<Vector2Int> fireWalls = new List<Vector2Int>();
-
-    [Tooltip("부딪히면 즉사")]
-    public List<Vector2Int> deadlyFireWalls = new List<Vector2Int>();
-
     [Header("불 타일 - 통과 가능, 활성 턴에만 피해")]
     [Tooltip("활성 턴에 밟으면 HP 1")]
     public List<FireTileData> fireTiles = new List<FireTileData>();

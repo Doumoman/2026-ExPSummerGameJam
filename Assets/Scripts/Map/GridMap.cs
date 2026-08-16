@@ -30,8 +30,6 @@ public class GridMap
 
         Paint(data.walls, TileType.Wall);
         Paint(data.breakableWalls, TileType.BreakableWall);
-        Paint(data.fireWalls, TileType.FireWall);
-        Paint(data.deadlyFireWalls, TileType.FireWallDeadly);
 
         PaintFireTiles(data.fireTiles, TileType.FireTile);
         PaintFireTiles(data.deadlyFireTiles, TileType.FireTileDeadly);
@@ -91,8 +89,6 @@ public class GridMap
         {
             case TileType.Wall:
             case TileType.BreakableWall:
-            case TileType.FireWall:
-            case TileType.FireWallDeadly:
             case TileType.IceWall:
             case TileType.Frozen:
                 return false;

@@ -18,9 +18,6 @@ public class PlayerController : MonoBehaviour
     [Header("Tuning")]
     [SerializeField] int _maxHp = 2;
 
-    [Tooltip("1데미지 불 벽에 부딪혔을 때 소모")]
-    [SerializeField] int _fireWallDamage = 1;
-
     [Tooltip("활성 상태인 1데미지 불 타일을 밟았을 때 소모")]
     [SerializeField] int _fireTileDamage = 1;
 
@@ -106,6 +103,10 @@ public class PlayerController : MonoBehaviour
         {
             cur += dir;
             path.Add(cur);
+
+            // 안 미끄러지는 타일에 들어서면 그 칸에서 끝난다.
+            // 이런 타일이 연달아 있으면 자연히 한 칸씩 걷게 되고, 한 칸짜리면 다음 입력부터 다시 미끄러진다.
+            if (_board.StopsSlide(cur)) break;
         }
         return path;
     }
@@ -157,15 +158,17 @@ public class PlayerController : MonoBehaviour
     {
         _slide = null;
 
-        // 슬라이드를 멈춰 세운 칸. 불 벽이면 부딪힌 것으로 친다.
-        // 맵 경계나 얼음/얼어붙은 물은 Floor 또는 비-불 타입이라 피해가 없다.
+        // 밀리는 벽은 _tiles 위에 얹혀 있어 GetTile 로는 안 잡히므로 따로 물어본다.
+        // 벽이 미끄러지는 동안은 입력을 잠근다.
+        var front = _cell + _slideDir;
+        if (_board.HasPushableWall(front))
+            _cooldown = _board.PushWall(front, _slideDir, _moveDuration) * _moveDuration;
+
+        // 슬라이드를 멈춰 세운 칸. 깨지는 벽이면 여기서 부순다.
         switch (_board.GetTile(_cell + _slideDir))
         {
-            case TileType.FireWall:
-                Damage(_fireWallDamage);
-                break;
-            case TileType.FireWallDeadly:
-                Kill();
+            case TileType.BreakableWall:
+                _board.BreakWall(_cell + _slideDir);
                 break;
         }
 

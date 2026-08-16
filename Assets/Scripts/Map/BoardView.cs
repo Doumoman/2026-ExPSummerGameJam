@@ -34,8 +34,6 @@ public class BoardView : MonoBehaviour
     [SerializeField] TileVisual _wall = new TileVisual { color = new Color(0.6f, 0.6f, 0.65f) };
     [SerializeField] TileVisual _breakableWall = new TileVisual { color = new Color(0.55f, 0.42f, 0.3f) };
     [SerializeField] TileVisual _pushableWall = new TileVisual { color = new Color(0.6f, 0.5f, 0.8f) };
-    [SerializeField] TileVisual _fireWall = new TileVisual { color = new Color(0.9f, 0.3f, 0.1f) };
-    [SerializeField] TileVisual _fireWallDeadly = new TileVisual { color = new Color(0.55f, 0.05f, 0.1f) };
     [SerializeField] TileVisual _fireTileOn = new TileVisual { color = new Color(1f, 0.55f, 0.1f) };
     [SerializeField] TileVisual _fireTileOff = new TileVisual { color = new Color(0.35f, 0.22f, 0.15f) };
     [SerializeField] TileVisual _fireTileDeadlyOn = new TileVisual { color = new Color(0.85f, 0.1f, 0.15f) };
@@ -233,8 +231,6 @@ public class BoardView : MonoBehaviour
             case TileType.Wall: return _wall;
             case TileType.BreakableWall: return _breakableWall;
             case TileType.PushableWall: return _pushableWall;
-            case TileType.FireWall: return _fireWall;
-            case TileType.FireWallDeadly: return _fireWallDeadly;
             case TileType.FireTile: return _fireTileOff;
             case TileType.FireTileDeadly: return _fireTileDeadlyOff;
             case TileType.IceWall: return _iceWall;
