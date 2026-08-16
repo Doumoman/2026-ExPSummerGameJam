@@ -10,28 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 81cd17b9193086144811cf5dffefe8c3, type: 3}
-  m_Name: Level08
+  m_Name: Level10004
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
   width: 7
   height: 10
-  spawn: {x: 6, y: 0}
+  spawn: {x: 3, y: 3}
   walls:
-  - {x: 0, y: 6}
-  - {x: 0, y: 4}
-  - {x: 2, y: 0}
+  - {x: 6, y: 9}
+  - {x: 0, y: 8}
+  - {x: 4, y: 7}
+  - {x: 2, y: 6}
+  - {x: 3, y: 4}
+  - {x: 5, y: 2}
+  - {x: 1, y: 1}
   breakableWalls: []
   pushableWalls: []
   fireTiles: []
-  deadlyFireTiles:
-  - cell: {x: 3, y: 7}
-    activeOnEvenTurn: 0
-  iceWalls:
-  - cell: {x: 3, y: 6}
-    meltTurn: 10
-  - cell: {x: 3, y: 4}
-    meltTurn: 9
+  deadlyFireTiles: []
+  iceWalls: []
   waters: []
   nonSlipTiles: []
-  turnLeftTiles: []
-  turnRightTiles: []
-  goal: {x: 0, y: 5}
+  cornerLeftDownTiles: []
+  cornerLeftUpTiles: []
+  cornerRightDownTiles: []
+  cornerRightUpTiles: []
+  goal: {x: 3, y: 5}

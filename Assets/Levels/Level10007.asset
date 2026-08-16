@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81cd17b9193086144811cf5dffefe8c3, type: 3}
+  m_Name: Level10007
+  m_EditorClassIdentifier: Assembly-CSharp::LevelData
+  width: 7
+  height: 10
+  spawn: {x: 1, y: 0}
+  walls:
+  - {x: 0, y: 9}
+  - {x: 6, y: 5}
+  - {x: 6, y: 1}
+  - {x: 0, y: 0}
+  breakableWalls: []
+  pushableWalls: []
+  fireTiles: []
+  deadlyFireTiles: []
+  iceWalls: []
+  waters: []
+  nonSlipTiles: []
+  cornerLeftDownTiles: []
+  cornerLeftUpTiles:
+  - {x: 3, y: 4}
+  cornerRightDownTiles:
+  - {x: 3, y: 6}
+  cornerRightUpTiles: []
+  goal: {x: 0, y: 1}
