@@ -30,6 +30,7 @@ public class TapToLoadScene : MonoBehaviour
         if (GO_StageSelect != null && !started)
         {
             GO_StageSelect.SetActive(true);
+            GO_Title.SetActive(false);
             started = true;
         }
     }
