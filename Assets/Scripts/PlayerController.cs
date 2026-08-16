@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using DG.Tweening;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 /// <summary>
 /// 입력 / 이동 / 체력 / 턴 담당. 맵 데이터는 소유하지 않고 BoardView에 물어본다.
@@ -12,7 +12,11 @@ public class PlayerController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] BoardView _board;
-    [SerializeField] TMP_Text _hpText;
+    [Tooltip("HP 를 그림으로 보여준다")]
+    [SerializeField] Image _hpImage;
+
+    [Tooltip("인덱스가 곧 HP 다. 0=사망, 1=반피, 2=풀피 순으로 넣어라")]
+    [SerializeField] Sprite[] _hpSprites;
 
     [Tooltip("Bool 파라미터 IsMoving 으로 idle/walk 를 전환한다. 비워두면 애니메이션 없이 동작한다")]
     [SerializeField] Animator _animator;
@@ -25,6 +29,19 @@ public class PlayerController : MonoBehaviour
 
     [Tooltip("한 칸을 지나가는 데 걸리는 시간. 슬라이드 전체 시간 = 이 값 x 이동 칸수.")]
     [SerializeField] float _moveDuration = 0.12f;
+
+    [Header("Popup")]
+    [Tooltip("골에 도달했을 때 뜬다. 비활성 상태로 두면 된다")]
+    [SerializeField] GameObject _successPanel;
+
+    [Tooltip("사망했을 때 뜬다. 비활성 상태로 두면 된다")]
+    [SerializeField] GameObject _failPanel;
+
+    [Tooltip("Death 애니메이션이 끝나고 실패 팝업이 뜨기까지의 시간")]
+    [SerializeField] float _failPopupDelay = 0.3f;
+
+    [Tooltip("메인 화면으로 나가기 버튼이 불러올 씬")]
+    [SerializeField] string _mainSceneName = "Main";
 
     [Header("Input")]
     [SerializeField] SwipeInput _swipe = new SwipeInput();
@@ -252,7 +269,9 @@ public class PlayerController : MonoBehaviour
         _wallMoving = false;
 
         if (_gameOver) return;
-        if (_cleared) { Play(Sfx.StageClear); LoadNextStage(); }
+
+        // 클리어해도 바로 넘어가지 않는다. 성공 팝업의 버튼이 다음 행동을 정한다.
+        if (_cleared) { Play(Sfx.StageClear); ShowPanel(_successPanel); }
     }
 
     /// <summary>밀리는 벽은 플레이어와 같은 소리를 낮은 피치로 낸다. 무겁고 큰 것이 움직인다는 신호.</summary>
@@ -472,8 +491,61 @@ public class PlayerController : MonoBehaviour
         SetMoving(false);
         if (_animator != null) _animator.SetTrigger(DeathHash);
         Play(Sfx.PlayerDeath);
+        StopLoop();   // 죽는 순간 마찰음이 남아 있으면 안 된다
+
+        StartCoroutine(ShowFailPanelAfterDeath());
 
         Debug.LogWarning("Game Over");
+    }
+
+    /// <summary>
+    /// Death 애니메이션이 다 재생된 뒤 잠깐 두었다가 실패 팝업을 띄운다.
+    /// 클립 길이나 재생 속도를 숫자로 박아두면 애니메이션을 손볼 때마다 어긋나므로
+    /// 애니메이터 상태를 직접 보고 끝나는 시점을 잡는다.
+    /// </summary>
+    System.Collections.IEnumerator ShowFailPanelAfterDeath()
+    {
+        if (_animator != null)
+        {
+            // 애니메이터가 없거나 전환이 막혀도 영영 멈추지 않도록 상한을 둔다.
+            float limit = Time.time + 3f;
+
+            while (Time.time < limit && !_animator.GetCurrentAnimatorStateInfo(0).IsName("Death"))
+                yield return null;
+
+            while (Time.time < limit
+                   && _animator.GetCurrentAnimatorStateInfo(0).IsName("Death")
+                   && _animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1f)
+                yield return null;
+        }
+
+        yield return new WaitForSeconds(_failPopupDelay);
+        ShowPanel(_failPanel);
+    }
+
+    static void ShowPanel(GameObject panel)
+    {
+        if (panel != null) panel.SetActive(true);
+    }
+
+    /// <summary>성공 팝업의 "다음 맵으로". 지금은 로그만 남긴다.</summary>
+    public void OnNextStageButton()
+    {
+        Play(Sfx.UIClick);
+        Debug.Log("다음 맵으로 (아직 미구현). 실제 이동이 필요해지면 LoadNextStage 를 부르면 된다.");
+    }
+
+    /// <summary>두 팝업 공통 "메인 화면으로 나가기".</summary>
+    public void OnGoToMainButton()
+    {
+        Play(Sfx.UIClick);
+
+        if (!Application.CanStreamedLevelBeLoaded(_mainSceneName))
+        {
+            Debug.LogWarning($"'{_mainSceneName}' 씬을 불러올 수 없다. Build Settings 등록을 확인해라.", this);
+            return;
+        }
+        SceneManager.LoadScene(_mainSceneName);
     }
 
     /// <summary>
@@ -493,7 +565,11 @@ public class PlayerController : MonoBehaviour
 
     void RefreshHUD()
     {
-        if (_hpText != null) _hpText.text = $"HP {_hp} / {_maxHp}";
+        if (_hpImage == null || _hpSprites == null || _hpSprites.Length == 0) return;
+
+        // 인덱스를 HP 그대로 쓰므로 최대 체력이 바뀌어도 배열만 늘리면 된다.
+        var sprite = _hpSprites[Mathf.Clamp(_hp, 0, _hpSprites.Length - 1)];
+        if (sprite != null) _hpImage.sprite = sprite;
     }
 
     /// <summary>

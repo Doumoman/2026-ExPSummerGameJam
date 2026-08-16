@@ -18,7 +18,10 @@ MonoBehaviour:
   walls: []
   breakableWalls: []
   pushableWalls: []
-  fireTiles: []
+  fireTiles:
+  - cell: {x: 0, y: 5}
+    activeOnEvenTurn: 0
+    alwaysActive: 1
   deadlyFireTiles: []
   iceWalls: []
   waters: []
@@ -28,3 +31,5 @@ MonoBehaviour:
   cornerRightDownTiles: []
   cornerRightUpTiles: []
   goal: {x: 9, y: 9}
+  nextSceneAsset: {fileID: 0}
+  nextScene: 
