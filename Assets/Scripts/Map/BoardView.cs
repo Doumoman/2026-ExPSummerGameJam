@@ -105,17 +105,27 @@ public class BoardView : MonoBehaviour
     /// 정지 조건은 플레이어와 같다 - 통과 불가 타일/맵 경계에 막히거나, 안 미끄러지는 타일에 올라섰을 때.
     /// 모서리 타일에서는 플레이어와 똑같이 꺾이고, 닫힌 면으로는 못 들어간다.
     /// 부딪혀 멈춘 칸이 깨지는 벽이면 그 벽을 부수고, 밀린 벽은 그 앞에 선다.
+    /// 부딪힌 칸에 또 다른 밀리는 벽이 서 있으면 거기서 멈추고 그쪽으로 운동량을 넘겨 연쇄로 밀어낸다.
     /// 활성 상태인 불 타일에 닿으면 그 칸에서 벽이 타 사라지고 불도 영구히 꺼진다.
     /// 꺼져 있는 불 타일과 물은 그냥 지나간다.
-    /// onSettled 는 벽이 완전히 멈추고 파괴/소각까지 끝난 순간 불린다.
+    /// 한 칸도 못 밀면 앞칸에는 아무 일도 일어나지 않는다. 플레이어와 마찬가지로
+    /// 최소 한 칸은 움직여 부딪혀야 상호작용이 성립하므로 제자리에서는 깨지지도 연쇄되지도 않는다.
+    /// onSettled 는 연쇄 전체가 완전히 멈추고 파괴/소각까지 끝난 순간 딱 한 번 불린다.
     /// 한 칸도 못 밀어 0을 돌려준 경우에는 불리지 않으니 호출 쪽에서 반환값을 보고 처리해야 한다.
-    /// brokeOnImpact 는 한 칸도 못 밀었지만 부딪힌 충격으로 앞의 깨지는 벽이 깨졌는지.
-    /// 민 칸수가 0이어도 이게 true면 판이 바뀌었으므로 턴은 소모되어야 한다.
+    /// 돌려주는 값은 연쇄 전체가 아니라 이 벽 하나가 움직인 칸수다.
     /// </summary>
-    public int PushWall(Vector2Int cell, Vector2Int dir, float moveDuration, int turn, System.Action onSettled,
-        out bool brokeOnImpact)
+    public int PushWall(Vector2Int cell, Vector2Int dir, float moveDuration, int turn, System.Action onSettled) =>
+        PushWall(cell, dir, moveDuration, turn, onSettled, new HashSet<(Vector2Int, Vector2Int)>());
+
+    /// <summary>
+    /// 연쇄 밀기의 실제 구현. chain 은 이번 연쇄에서 이미 밀어본 (칸, 방향) 조합이다.
+    /// 모서리 타일로 고리를 만들고 그 위에 벽을 여러 개 놓으면 서로 영원히 밀어댈 수 있어서,
+    /// 같은 조합이 다시 나오면 연쇄를 끊는다. 여기서 안 끊으면 턴이 끝나지 않아 입력이 영영 잠긴다.
+    /// </summary>
+    int PushWall(Vector2Int cell, Vector2Int dir, float moveDuration, int turn, System.Action onSettled,
+        HashSet<(Vector2Int, Vector2Int)> chain)
     {
-        brokeOnImpact = false;
+        if (!chain.Add((cell, dir))) return 0;
 
         if (!_pushableMarkers.TryGetValue(cell, out var marker)) return 0;
 
@@ -145,15 +155,13 @@ public class BoardView : MonoBehaviour
             if (!visited.Add((cur, curDir))) { blocked = false; break; }
         }
 
-        // 부딪혀서 멈춘 칸. 깨지는 벽이면 부수고, 밀린 벽은 그 앞에 그대로 선다.
-        var hit = cur + curDir;
+        // 제자리에서는 앞칸을 건드리지 않는다. 부딪힌 충격으로 깨지는 벽이 깨지는 일도 없다.
+        if (path.Count == 0) return 0;
 
-        if (path.Count == 0)
-        {
-            // 한 칸도 못 밀었어도 부딪히긴 했으므로 깨지는 벽은 부순다.
-            if (blocked) brokeOnImpact = BreakWall(hit);
-            return 0;
-        }
+        // 부딪혀서 멈춘 칸과 그때의 진행 방향. 모서리로 꺾였다면 처음 dir 과 다르므로 따로 들고 간다.
+        // 연쇄로 다음 벽을 밀 때도 이 방향을 그대로 넘겨야 꺾인 궤도가 이어진다.
+        var hit = cur + curDir;
+        var hitDir = curDir;
 
         var dest = path[path.Count - 1];
         _map.MovePushableWall(cell, dest);
@@ -174,7 +182,19 @@ public class BoardView : MonoBehaviour
         slide.OnComplete(() =>
         {
             if (burned) BurnWall(dest);
-            else if (blocked) BreakWall(hit);
+            else if (blocked)
+            {
+                if (_map.HasPushableWall(hit))
+                {
+                    // 부딪힌 칸에 또 다른 밀리는 벽. 이 벽은 여기서 멈추고 운동량만 넘긴다.
+                    // 플레이어가 부딪혀 멈추고 벽만 날아가는 것과 같은 규칙이라 연쇄가 자연스럽게 이어진다.
+                    // 그 벽이 실제로 움직였으면 턴 넘김은 연쇄의 끝에서 맡으므로 여기서 부르면 안 된다.
+                    if (PushWall(hit, hitDir, moveDuration, turn, onSettled, chain) > 0) return;
+
+                    // 못 움직였으면 연쇄는 여기서 끝. 밀리는 벽이 앞을 막고 있으니 밑의 타일은 건드리지 않는다.
+                }
+                else BreakWall(hit);
+            }
 
             onSettled?.Invoke();
         });
@@ -252,7 +272,8 @@ public class BoardView : MonoBehaviour
 
     /// <summary>
     /// 깨지는 벽을 부숴 바닥으로 만든다. LevelData는 그대로라 다시 구우면 복구된다.
-    /// 실제로 부순 경우에만 true. 호출 쪽에서 턴 소모 여부를 판단하는 데 쓴다.
+    /// 실제로 부순 경우에만 true. 부딪힌 칸이 깨지는 벽인지 미리 가려낼 필요 없이 그냥 부르면 된다.
+    /// 최소 한 칸 움직여 부딪혔을 때만 부르는 것은 호출 쪽 책임이다.
     /// </summary>
     public bool BreakWall(Vector2Int cell)
     {

@@ -99,21 +99,9 @@ public class PlayerController : MonoBehaviour
 
         var path = BuildSlidePath(dir, out var slideDir, out var blocked);
 
-        // 한 칸도 못 가더라도 바로 앞 벽에 부딪힌 것은 맞다.
-        // 벽에 붙어 선 상태에서도 밀거나 부술 수 있어야 하므로 여기서 처리한다.
-        if (path.Count == 0)
-        {
-            // 불 타일 활성 판정이 턴 번호를 보므로 먼저 올리고, 아무 일도 없었으면 되돌린다.
-            _turn++;
-            if (!HitFront(dir)) { _turn--; return; }
-
-            RefreshHUD();
-
-            // 슬라이드가 없어 OnSlideEnd 를 안 거치므로 여기서 턴을 넘긴다.
-            // 벽을 밀었다면 그 벽이 멈추는 순간 EndTurn 이 불린다.
-            if (!_wallMoving) EndTurn();
-            return;
-        }
+        // 제자리에서는 앞칸을 건드리지 않는다. 최소 한 칸은 미끄러져 와서 부딪혀야 상호작용이 성립한다.
+        // 벽에 붙어 선 채로 밀어봐야 밀리지도 부서지지도 않고, 판이 그대로라 턴도 지나가지 않는다.
+        if (path.Count == 0) return;
 
         _turn++;
         RefreshHUD();
@@ -232,41 +220,29 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// 부딪힌 바로 그 순간 앞칸에 작용한다. 실제로 무언가 일어났으면 true.
-    /// 미끄러져 와서 부딪힌 경우와 벽에 붙어 선 채 밀어붙인 경우가 같은 처리를 타야
-    /// 연출과 사운드 타이밍이 한 지점으로 모인다.
+    /// 미끄러져 와서 부딪힌 바로 그 순간 앞칸에 작용한다.
+    /// 최소 한 칸은 움직여 벽에 막혀 멈춘 경우에만 불리므로 제자리 상호작용은 여기까지 오지 않는다.
     /// </summary>
-    bool HitFront(Vector2Int dir)
+    void HitFront(Vector2Int dir)
     {
         var front = _cell + dir;
-        bool acted = false;
 
         // 밀리는 벽은 _tiles 위에 얹혀 있어 GetTile 로는 안 잡히므로 따로 물어본다.
         // 벽이 미끄러지는 동안은 입력을 잠근다.
         if (_board.HasPushableWall(front))
         {
-            int pushed = _board.PushWall(front, dir, _moveDuration, _turn, EndTurn, out bool brokeOnImpact);
+            int pushed = _board.PushWall(front, dir, _moveDuration, _turn, EndTurn);
             _cooldown = pushed * _moveDuration;
 
-            if (pushed > 0)
-            {
-                acted = true;
-                _wallMoving = true;   // 벽이 멈추는 순간 EndTurn 이 불린다
-            }
-            // 꿈쩍도 안 했어도 부딪힌 충격으로 뒤의 깨지는 벽이 깨졌으면 판이 바뀐 것이라 턴을 소모한다.
-            // 여기서 놓치면 벽만 부수고 턴은 안 넘어가는 공짜 행동이 된다.
-            else if (brokeOnImpact) acted = true;
+            if (pushed > 0) _wallMoving = true;   // 벽이 멈추는 순간 EndTurn 이 불린다
         }
 
         switch (_board.GetTile(front))
         {
             case TileType.BreakableWall:
                 _board.BreakWall(front);
-                acted = true;
                 break;
         }
-
-        return acted;
     }
 
     /// <summary>슬라이드 도중 사망하면 그 칸에서 즉시 멈춘다.</summary>
