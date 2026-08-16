@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81cd17b9193086144811cf5dffefe8c3, type: 3}
+  m_Name: Level08
+  m_EditorClassIdentifier: Assembly-CSharp::LevelData
+  width: 7
+  height: 10
+  spawn: {x: 6, y: 0}
+  walls:
+  - {x: 0, y: 6}
+  - {x: 0, y: 4}
+  - {x: 2, y: 0}
+  breakableWalls: []
+  pushableWalls: []
+  fireWalls: []
+  deadlyFireWalls:
+  - {x: 3, y: 7}
+  fireTiles: []
+  deadlyFireTiles: []
+  iceWalls:
+  - cell: {x: 3, y: 6}
+    meltTurn: 10
+  - cell: {x: 3, y: 4}
+    meltTurn: 9
+  waters: []
+  nonSlipTiles: []
+  goal: {x: 0, y: 5}
