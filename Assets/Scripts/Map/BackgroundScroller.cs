@@ -136,8 +136,5 @@ public class BackgroundScroller : MonoBehaviour
 
         int needed = Mathf.CeilToInt(visible / tileLength) + 1;
 
-        Debug.LogWarning($"BackgroundScroller: 패턴이 모자라 빈틈이 지나간다. " +
-            $"이 축으로 화면은 {visible:F0}, 항상 덮이는 길이는 {covered:F0} 다. " +
-            $"오브젝트를 {needed}개로 늘리고 Tile Count 도 {needed} 로 올려라.", this);
     }
 }

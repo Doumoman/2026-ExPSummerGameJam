@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
@@ -9,32 +9,22 @@ using UnityEngine.SceneManagement;
 public class TapToLoadScene : MonoBehaviour
 {
     [Tooltip("넘어갈 씬 이름. Build Settings 에 등록되어 있어야 한다")]
-    [SerializeField] string _sceneName = "StageSelect";
+    [SerializeField] GameObject GO_StageSelect;
 
     [Tooltip("씬이 뜨자마자 직전 화면에서 누르고 있던 손가락으로 넘어가버리는 것을 막는다")]
     [SerializeField] float _inputDelay = 0.3f;
 
-    bool _loading;
-    float _elapsed;
+    bool started;
 
     void Update()
     {
-        // 씬 로드는 프레임 끝에 반영되므로 그 사이에 두 번 부르지 않도록 잠근다.
-        if (_loading) return;
-
-        _elapsed += Time.deltaTime;
-        if (_elapsed < _inputDelay) return;
-
         if (!Pressed()) return;
 
-        if (string.IsNullOrWhiteSpace(_sceneName))
+        if (GO_StageSelect != null && !started)
         {
-            Debug.LogWarning("TapToLoadScene: 넘어갈 씬 이름이 비어 있다.", this);
-            return;
+            GO_StageSelect.SetActive(true);
+            started = true;
         }
-
-        _loading = true;
-        SceneManager.LoadScene(_sceneName);
     }
 
     /// <summary>터치 우선, 없으면 마우스/키보드. 누른 그 프레임에만 true.</summary>
