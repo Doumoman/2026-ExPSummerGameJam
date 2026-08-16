@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -27,6 +27,9 @@ public class PlayerController : MonoBehaviour
     [Tooltip("한 칸을 지나가는 데 걸리는 시간. 슬라이드 전체 시간 = 이 값 x 이동 칸수.")]
     [SerializeField] float _moveDuration = 0.12f;
 
+    [Header("Input")]
+    [SerializeField] SwipeInput _swipe = new SwipeInput();
+
     Vector2Int _cell;
     Vector2Int _slideDir;
     int _hp;
@@ -35,6 +38,21 @@ public class PlayerController : MonoBehaviour
     bool _gameOver;
     bool _cleared;
     Sequence _slide;
+    bool _inputEnabled = true;
+
+    /// <summary>
+    /// 설정 창처럼 화면을 덮는 UI가 열려 있는 동안 false로 두면 키보드와 스와이프가 모두 막힌다.
+    /// UI 위인지 좌표로 판정하는 방식은 모바일에서 한 프레임 늦어 새기 때문에 이 토글을 쓴다.
+    /// </summary>
+    public bool InputEnabled
+    {
+        get => _inputEnabled;
+        set
+        {
+            _inputEnabled = value;
+            if (!value) _swipe.Cancel();   // 진행 중이던 드래그를 버린다
+        }
+    }
 
     /// <summary>BoardView가 Awake에서 맵을 만드므로 여기서는 Start를 쓴다.</summary>
     void Start()
@@ -52,7 +70,10 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (_gameOver || _cleared) return;
+        // 쿨타임 중에도 매 프레임 돌려야 손 뗀 걸 놓치지 않는다. 결과는 아래에서 버려질 수 있다.
+        var swipeDir = _swipe.Read();
+
+        if (!_inputEnabled || _gameOver || _cleared) return;
 
         if (_cooldown > 0f)
         {
@@ -60,7 +81,8 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        var dir = ReadDir();
+        var dir = ReadKeyboard();
+        if (dir == Vector2Int.zero) dir = swipeDir;
         if (dir == Vector2Int.zero) return;
 
         var path = BuildSlidePath(dir);
@@ -183,7 +205,7 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>한 프레임에 한 방향만 반환하므로 대각선 입력이 생기지 않는다.</summary>
-    static Vector2Int ReadDir()
+    static Vector2Int ReadKeyboard()
     {
         if (Input.GetKeyDown(KeyCode.W)) return Vector2Int.up;
         if (Input.GetKeyDown(KeyCode.S)) return Vector2Int.down;
@@ -220,5 +242,116 @@ public class PlayerController : MonoBehaviour
     {
         if (_hpText != null) _hpText.text = $"HP {_hp} / {_maxHp}";
         if (_turnText != null) _turnText.text = $"TURN {_turn}";
+    }
+
+    /// <summary>
+    /// 화면 스와이프를 4방향 중 하나로 바꿔준다.
+    /// 터치가 있으면 터치를, 없으면 마우스를 쓰므로 에디터에서 드래그로 그대로 테스트된다.
+    /// </summary>
+    [System.Serializable]
+    class SwipeInput
+    {
+        [Tooltip("화면 짧은 변 대비 몇 배를 움직여야 스와이프로 치는지. 픽셀 고정값을 쓰면 해상도마다 감도가 달라진다")]
+        [Range(0.01f, 0.5f)]
+        [SerializeField] float _minDistanceRatio = 0.05f;
+
+        [Tooltip("이 영역들 안에서 시작한 드래그는 스와이프로 치지 않는다. 설정 창 패널 등의 RectTransform 을 넣어라")]
+        [SerializeField] RectTransform[] _blockAreas;
+
+        bool _tracking;
+        bool _fired;
+        Vector2 _startPos;
+
+        /// <summary>진행 중이던 드래그를 버린다. 손을 뗐다 다시 대야 인식된다.</summary>
+        public void Cancel()
+        {
+            _tracking = false;
+            _fired = false;
+        }
+
+        /// <summary>
+        /// 매 프레임 호출해야 한다. 쿨타임 중이라도 건너뛰면 손 뗀 걸 놓쳐 상태가 멈춘다.
+        /// 방향이 정해진 프레임에만 값을 돌려주고 나머지는 zero.
+        /// </summary>
+        public Vector2Int Read()
+        {
+            if (!ReadPointer(out var pos, out bool down, out bool up))
+            {
+                _tracking = false;
+                return Vector2Int.zero;
+            }
+
+            if (down)
+            {
+                // 시작 지점이 UI 영역 안이면 아예 추적하지 않는다.
+                // EventSystem 레이캐스트와 달리 직전 프레임 결과가 아니라 즉시 판정된다.
+                _tracking = !IsInsideBlockedArea(pos);
+                _fired = false;
+                _startPos = pos;
+                return Vector2Int.zero;
+            }
+
+            if (up)
+            {
+                _tracking = false;
+                return Vector2Int.zero;
+            }
+
+            if (!_tracking || _fired) return Vector2Int.zero;
+
+            var delta = pos - _startPos;
+            float threshold = Mathf.Min(Screen.width, Screen.height) * _minDistanceRatio;
+            if (delta.sqrMagnitude < threshold * threshold) return Vector2Int.zero;
+
+            _fired = true;   // 손을 뗄 때까지 이 드래그로 더 움직이지 않는다
+            return ToDirection(delta);
+        }
+
+        /// <summary>꺼져 있는(비활성) 패널은 막지 않으므로 창을 닫으면 자동으로 다시 통한다.</summary>
+        bool IsInsideBlockedArea(Vector2 screenPos)
+        {
+            if (_blockAreas == null) return false;
+
+            foreach (var area in _blockAreas)
+            {
+                if (area == null || !area.gameObject.activeInHierarchy) continue;
+
+                // Screen Space - Overlay 캔버스는 카메라를 null 로 넘겨야 좌표가 맞는다.
+                var canvas = area.GetComponentInParent<Canvas>();
+                var cam = (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+                    ? canvas.worldCamera
+                    : null;
+
+                if (RectTransformUtility.RectangleContainsScreenPoint(area, screenPos, cam)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>더 많이 움직인 축만 채택하므로 대각선이 나올 수 없다.</summary>
+        static Vector2Int ToDirection(Vector2 delta)
+        {
+            if (Mathf.Abs(delta.x) > Mathf.Abs(delta.y))
+                return delta.x > 0f ? Vector2Int.right : Vector2Int.left;
+
+            return delta.y > 0f ? Vector2Int.up : Vector2Int.down;
+        }
+
+        /// <summary>터치 우선, 없으면 마우스. 첫 번째 터치만 본다.</summary>
+        static bool ReadPointer(out Vector2 pos, out bool down, out bool up)
+        {
+            if (Input.touchCount > 0)
+            {
+                var touch = Input.GetTouch(0);
+                pos = touch.position;
+                down = touch.phase == TouchPhase.Began;
+                up = touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled;
+                return true;
+            }
+
+            pos = Input.mousePosition;
+            down = Input.GetMouseButtonDown(0);
+            up = Input.GetMouseButtonUp(0);
+            return down || up || Input.GetMouseButton(0);
+        }
     }
 }

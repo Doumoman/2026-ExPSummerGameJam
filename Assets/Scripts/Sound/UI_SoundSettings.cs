@@ -10,8 +10,15 @@ public class UI_SoundSettings : MonoBehaviour
     [SerializeField] Slider _bgmSlider;
     [SerializeField] Slider _sfxSlider;
 
+    // 설정 창이 열려 있는 동안 스와이프로 캐릭터가 움직이지 않게 막는 배선.
+    // 아직 실제 설정 창 UI가 없어서 주석으로만 둔다. 창을 만들면 아래 3곳의 주석을 풀어라.
+    // [SerializeField] PlayerController _player;
+
     void OnEnable()
     {
+        // 슬라이더를 드래그하면 스와이프로 오인되므로 창이 열려 있는 동안 입력을 끈다.
+        // if (_player != null) _player.InputEnabled = false;
+
         var sound = SoundManager.Instance;
         if (sound == null)
         {
@@ -29,6 +36,8 @@ public class UI_SoundSettings : MonoBehaviour
 
     void OnDisable()
     {
+        // if (_player != null) _player.InputEnabled = true;
+
         var sound = SoundManager.Instance;
         if (sound == null) return;
 
