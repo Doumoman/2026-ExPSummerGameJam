@@ -35,6 +35,10 @@ public class PlayerController : MonoBehaviour
     Vector2Int _cell;
     Vector2Int _slideDir;
     bool _slideBlocked;
+
+    /// <summary>밀린 벽이 아직 미끄러지는 중. 벽이 멈출 때까지 턴을 넘기지 않는다.</summary>
+    bool _wallMoving;
+
     int _hp;
     int _turn;
     float _cooldown;
@@ -67,7 +71,7 @@ public class PlayerController : MonoBehaviour
         _turn = 0;
         RefreshHud();
 
-        // 첫 이동은 1턴이다. meltTurn이 1인 얼음을 녹이고 1턴 기준 표시로 맞춘다.
+        // 첫 이동은 1턴이다. 0턴은 아직 아무것도 안 했으므로 녹는 얼음은 없고 표시만 1턴 기준으로 맞춘다.
         _board.PostMove(0);
     }
 
@@ -84,6 +88,11 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        // 쿨타임은 트윈과 따로 도는 타이머라 한 프레임 어긋날 수 있다.
+        // 턴이 정말 끝났는지는 움직이는 주체를 직접 보고 판단한다.
+        // 여기서 새 입력을 받아버리면 앞 턴의 OnSlideEnd 가 새 턴 값으로 실행되어 턴이 두 번 세어진다.
+        if (_slide != null || _wallMoving) return;
+
         var dir = ReadKeyboard();
         if (dir == Vector2Int.zero) dir = swipeDir;
         if (dir == Vector2Int.zero) return;
@@ -99,7 +108,10 @@ public class PlayerController : MonoBehaviour
             if (!HitFront(dir)) { _turn--; return; }
 
             RefreshHud();
-            _board.PostMove(_turn);   // 슬라이드가 없어 OnSlideEnd 를 안 거치므로 여기서 턴을 넘긴다
+
+            // 슬라이드가 없어 OnSlideEnd 를 안 거치므로 여기서 턴을 넘긴다.
+            // 벽을 밀었다면 그 벽이 멈추는 순간 EndTurn 이 불린다.
+            if (!_wallMoving) EndTurn();
             return;
         }
 
@@ -196,6 +208,19 @@ public class PlayerController : MonoBehaviour
         // 안 미끄러지는 타일에 올라서서 스스로 선 것은 충돌이 아니므로 앞칸을 건드리지 않는다.
         if (_slideBlocked) HitFront(_slideDir);
 
+        // 밀린 벽이 아직 움직이는 중이면 그 벽이 멈추는 순간 EndTurn 이 불린다.
+        if (!_wallMoving) EndTurn();
+    }
+
+    /// <summary>
+    /// 턴 마무리. 입력 한 번으로 시작된 움직임(플레이어 슬라이드 + 밀린 벽 슬라이드)이
+    /// 전부 끝난 뒤에 딱 한 번 불려야 한다. 벽이 미끄러지는 도중에 부르면
+    /// 불 타일이 다음 턴 상태로 바뀌어 한 턴 안에서 켜졌다 꺼지는 것처럼 보인다.
+    /// </summary>
+    void EndTurn()
+    {
+        _wallMoving = false;
+
         if (_gameOver) return;
 
         _board.PostMove(_turn);   // 다음 턴 준비: 얼음 녹이기 + 불 타일 표시 갱신
@@ -217,10 +242,17 @@ public class PlayerController : MonoBehaviour
         // 벽이 미끄러지는 동안은 입력을 잠근다.
         if (_board.HasPushableWall(front))
         {
-            int pushed = _board.PushWall(front, dir, _moveDuration, _turn);
+            int pushed = _board.PushWall(front, dir, _moveDuration, _turn, EndTurn, out bool brokeOnImpact);
             _cooldown = pushed * _moveDuration;
 
-            if (pushed > 0) acted = true;   // 꿈쩍도 안 했으면 일반 벽을 민 것과 같다
+            if (pushed > 0)
+            {
+                acted = true;
+                _wallMoving = true;   // 벽이 멈추는 순간 EndTurn 이 불린다
+            }
+            // 꿈쩍도 안 했어도 부딪힌 충격으로 뒤의 깨지는 벽이 깨졌으면 판이 바뀐 것이라 턴을 소모한다.
+            // 여기서 놓치면 벽만 부수고 턴은 안 넘어가는 공짜 행동이 된다.
+            else if (brokeOnImpact) acted = true;
         }
 
         switch (_board.GetTile(front))

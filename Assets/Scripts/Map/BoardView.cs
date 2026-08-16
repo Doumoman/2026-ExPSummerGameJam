@@ -97,9 +97,16 @@ public class BoardView : MonoBehaviour
     /// 부딪혀 멈춘 칸이 깨지는 벽이면 그 벽을 부수고, 밀린 벽은 그 앞에 선다.
     /// 활성 상태인 불 타일에 닿으면 그 칸에서 벽이 타 사라지고 불도 영구히 꺼진다.
     /// 꺼져 있는 불 타일과 물은 그냥 지나간다.
+    /// onSettled 는 벽이 완전히 멈추고 파괴/소각까지 끝난 순간 불린다.
+    /// 한 칸도 못 밀어 0을 돌려준 경우에는 불리지 않으니 호출 쪽에서 반환값을 보고 처리해야 한다.
+    /// brokeOnImpact 는 한 칸도 못 밀었지만 부딪힌 충격으로 앞의 깨지는 벽이 깨졌는지.
+    /// 민 칸수가 0이어도 이게 true면 판이 바뀌었으므로 턴은 소모되어야 한다.
     /// </summary>
-    public int PushWall(Vector2Int cell, Vector2Int dir, float moveDuration, int turn)
+    public int PushWall(Vector2Int cell, Vector2Int dir, float moveDuration, int turn, System.Action onSettled,
+        out bool brokeOnImpact)
     {
+        brokeOnImpact = false;
+
         if (!_pushableMarkers.TryGetValue(cell, out var marker)) return 0;
 
         var path = new List<Vector2Int>();
@@ -134,7 +141,7 @@ public class BoardView : MonoBehaviour
         if (path.Count == 0)
         {
             // 한 칸도 못 밀었어도 부딪히긴 했으므로 깨지는 벽은 부순다.
-            if (blocked) BreakWall(hit);
+            if (blocked) brokeOnImpact = BreakWall(hit);
             return 0;
         }
 
@@ -153,8 +160,14 @@ public class BoardView : MonoBehaviour
         }
 
         // 도착한 그 순간에 처리한다. 플레이어가 OnSlideEnd 에서 부수는 것과 같은 타이밍이다.
-        if (burned) slide.OnComplete(() => BurnWall(dest));
-        else if (blocked) slide.OnComplete(() => BreakWall(hit));
+        // 턴 넘김(onSettled)은 반드시 그 뒤라야 벽이 미끄러지는 도중에 불 타일이 다음 턴으로 바뀌지 않는다.
+        slide.OnComplete(() =>
+        {
+            if (burned) BurnWall(dest);
+            else if (blocked) BreakWall(hit);
+
+            onSettled?.Invoke();
+        });
 
         return path.Count;
     }
@@ -189,17 +202,17 @@ public class BoardView : MonoBehaviour
     }
 
     /// <summary>
-    /// 이동이 끝난 직후 호출한다. 다음 턴 기준으로 얼음을 녹이고 불 타일 표시를 갱신한다.
-    /// meltTurn이 3이면 2턴 이동이 끝난 이 시점에 녹아서 3턴 이동부터 지나갈 수 있다.
+    /// 이동이 끝난 직후 호출한다. 방금 끝난 턴 기준으로 얼음을 녹이고, 다음 턴 기준으로 불 표시를 갱신한다.
+    /// 두 기준이 다른 게 맞다. 얼음은 "몇 턴을 버텼는가"라 끝난 턴을 보고,
+    /// 불 표시는 "이제 어느 턴을 두는가"라 다음 턴을 본다.
+    /// meltTurn이 3이면 3턴 이동까지 막아내고 그 이동이 끝난 이 시점에 녹아서 4턴부터 지나갈 수 있다.
     /// </summary>
     public void PostMove(int completedTurn)
     {
-        int nextTurn = completedTurn + 1;
-
-        foreach (var cell in _map.MeltIce(nextTurn))
+        foreach (var cell in _map.MeltIce(completedTurn))
             if (_markers.TryGetValue(cell, out var marker)) marker.Renderer.gameObject.SetActive(false);
 
-        RefreshForTurn(nextTurn);
+        RefreshForTurn(completedTurn + 1);
     }
 
     /// <summary>불 타일의 활성/비활성 표현을 해당 턴 기준으로 갱신한다.</summary>
@@ -225,13 +238,17 @@ public class BoardView : MonoBehaviour
         }
     }
 
-    /// <summary>깨지는 벽을 부숴 바닥으로 만든다. LevelData는 그대로라 다시 구우면 복구된다.</summary>
-    public void BreakWall(Vector2Int cell)
+    /// <summary>
+    /// 깨지는 벽을 부숴 바닥으로 만든다. LevelData는 그대로라 다시 구우면 복구된다.
+    /// 실제로 부순 경우에만 true. 호출 쪽에서 턴 소모 여부를 판단하는 데 쓴다.
+    /// </summary>
+    public bool BreakWall(Vector2Int cell)
     {
-        if (_map.Get(cell) != TileType.BreakableWall) return;
+        if (_map.Get(cell) != TileType.BreakableWall) return false;
 
         _map.SetTile(cell, TileType.Floor);
         if (_markers.TryGetValue(cell, out var marker)) marker.Renderer.gameObject.SetActive(false);
+        return true;
     }
 
     /// <summary>물을 얼려 영구 차단으로 바꾼다. LevelData는 그대로라 다시 구우면 복구된다.</summary>

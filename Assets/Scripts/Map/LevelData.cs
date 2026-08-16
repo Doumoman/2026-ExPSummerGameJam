@@ -15,7 +15,7 @@ public struct IceWallData
 {
     public Vector2Int cell;
 
-    [Tooltip("이 턴의 이동부터 통과 가능. 3이면 2턴 이동이 끝난 직후 녹는다")]
+    [Tooltip("몇 턴짜리 얼음인지. 3이면 3턴 이동까지 막아내고 그 직후 녹아 4턴부터 통과 가능")]
     public int meltTurn;
 }
 
@@ -45,7 +45,7 @@ public class LevelData : ScriptableObject
     public List<FireTileData> deadlyFireTiles = new List<FireTileData>();
 
     [Header("그 외")]
-    [Tooltip("얼음 벽 - meltTurn 이 되면 녹아서 바닥이 된다")]
+    [Tooltip("얼음 벽 - meltTurn 턴을 버틴 뒤 녹아서 바닥이 된다. 부딪혀도 깨지지 않는다")]
     public List<IceWallData> iceWalls = new List<IceWallData>();
 
     [Tooltip("물 - 1회만 통과 가능. 떠나는 순간 얼어붙어 영구 차단")]

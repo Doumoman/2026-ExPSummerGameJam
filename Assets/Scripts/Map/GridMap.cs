@@ -109,15 +109,18 @@ public class GridMap
         return (turn % 2 == 0) == onEven;
     }
 
-    /// <summary>meltTurn이 upToTurn 이하인 얼음 벽을 녹여 바닥으로 만든다. 녹은 칸 목록을 돌려준다.</summary>
-    public List<Vector2Int> MeltIce(int upToTurn)
+    /// <summary>
+    /// meltTurn이 completedTurn 이하인 얼음 벽을 녹여 바닥으로 만든다. 녹은 칸 목록을 돌려준다.
+    /// 기준은 방금 끝난 턴이다. meltTurn이 그 턴까지는 버텨야 "meltTurn 턴짜리 얼음"이 된다.
+    /// </summary>
+    public List<Vector2Int> MeltIce(int completedTurn)
     {
         var melted = new List<Vector2Int>();
 
         foreach (var pair in _iceMeltTurn)
         {
             var cell = pair.Key;
-            if (pair.Value > upToTurn) continue;
+            if (pair.Value > completedTurn) continue;
             if (_tiles[cell.x, cell.y] != TileType.IceWall) continue;   // 이미 녹음
 
             _tiles[cell.x, cell.y] = TileType.Floor;
