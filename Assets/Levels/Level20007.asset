@@ -16,27 +16,27 @@ MonoBehaviour:
   height: 10
   spawn: {x: 3, y: 0}
   walls:
-  - {x: 0, y: 9}
-  breakableWalls:
-  - {x: 0, y: 8}
-  - {x: 0, y: 7}
   - {x: 0, y: 6}
+  - {x: 1, y: 6}
+  - {x: 2, y: 6}
+  - {x: 4, y: 6}
   - {x: 5, y: 6}
+  - {x: 6, y: 6}
+  breakableWalls:
   - {x: 0, y: 5}
-  - {x: 4, y: 5}
-  - {x: 1, y: 1}
-  - {x: 5, y: 1}
-  - {x: 5, y: 0}
+  - {x: 3, y: 5}
+  - {x: 4, y: 0}
   pushableWalls: []
-  fireTiles: []
+  fireTiles:
+  - cell: {x: 3, y: 4}
+    activeOnEvenTurn: 0
+    alwaysActive: 1
   deadlyFireTiles: []
   iceWalls: []
   waters: []
   nonSlipTiles: []
-  cornerLeftDownTiles:
-  - {x: 4, y: 9}
-  cornerLeftUpTiles:
-  - {x: 4, y: 8}
+  cornerLeftDownTiles: []
+  cornerLeftUpTiles: []
   cornerRightDownTiles: []
   cornerRightUpTiles: []
   goal: {x: 3, y: 9}

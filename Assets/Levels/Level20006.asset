@@ -10,44 +10,42 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 81cd17b9193086144811cf5dffefe8c3, type: 3}
-  m_Name: Level30011
+  m_Name: Level20006
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
   width: 7
   height: 10
   spawn: {x: 3, y: 0}
   walls:
   - {x: 0, y: 9}
-  - {x: 2, y: 9}
+  breakableWalls:
   - {x: 0, y: 8}
   - {x: 0, y: 7}
   - {x: 0, y: 6}
-  - {x: 2, y: 6}
-  - {x: 2, y: 4}
-  - {x: 4, y: 4}
-  - {x: 5, y: 4}
-  - {x: 2, y: 3}
-  - {x: 2, y: 2}
-  - {x: 2, y: 1}
-  - {x: 2, y: 0}
-  breakableWalls:
-  - {x: 1, y: 8}
-  pushableWalls:
-  - {x: 3, y: 6}
-  fireTiles: []
-  deadlyFireTiles:
-  - cell: {x: 2, y: 8}
-    activeOnEvenTurn: 0
-    alwaysActive: 0
+  - {x: 5, y: 6}
+  - {x: 0, y: 5}
+  - {x: 4, y: 5}
+  - {x: 1, y: 1}
+  - {x: 5, y: 1}
+  - {x: 5, y: 0}
+  pushableWalls: []
+  fireTiles:
   - cell: {x: 3, y: 8}
-    activeOnEvenTurn: 1
-    alwaysActive: 0
+    activeOnEvenTurn: 0
+    alwaysActive: 1
+  - cell: {x: 3, y: 4}
+    activeOnEvenTurn: 0
+    alwaysActive: 1
+  - cell: {x: 0, y: 3}
+    activeOnEvenTurn: 0
+    alwaysActive: 1
+  deadlyFireTiles: []
   iceWalls: []
   waters: []
-  nonSlipTiles:
-  - {x: 1, y: 7}
-  - {x: 3, y: 5}
-  cornerLeftDownTiles: []
-  cornerLeftUpTiles: []
+  nonSlipTiles: []
+  cornerLeftDownTiles:
+  - {x: 4, y: 9}
+  cornerLeftUpTiles:
+  - {x: 4, y: 8}
   cornerRightDownTiles: []
   cornerRightUpTiles: []
-  goal: {x: 1, y: 9}
+  goal: {x: 3, y: 9}

@@ -15,34 +15,37 @@ MonoBehaviour:
   width: 7
   height: 10
   spawn: {x: 6, y: 0}
-  walls:
-  - {x: 0, y: 5}
-  - {x: 6, y: 5}
-  - {x: 6, y: 4}
-  - {x: 6, y: 3}
-  - {x: 2, y: 2}
+  walls: []
   breakableWalls:
   - {x: 3, y: 7}
   pushableWalls:
-  - {x: 3, y: 3}
-  fireTiles:
-  - cell: {x: 0, y: 6}
-    activeOnEvenTurn: 0
-  - cell: {x: 1, y: 6}
-    activeOnEvenTurn: 0
-  - cell: {x: 2, y: 6}
-    activeOnEvenTurn: 0
-  - cell: {x: 3, y: 6}
-    activeOnEvenTurn: 0
-  - cell: {x: 4, y: 6}
-    activeOnEvenTurn: 0
-  - cell: {x: 5, y: 6}
-    activeOnEvenTurn: 0
-  - cell: {x: 6, y: 6}
-    activeOnEvenTurn: 0
+  - {x: 3, y: 2}
+  fireTiles: []
   deadlyFireTiles:
   - cell: {x: 3, y: 9}
     activeOnEvenTurn: 0
+    alwaysActive: 1
+  - cell: {x: 0, y: 6}
+    activeOnEvenTurn: 0
+    alwaysActive: 0
+  - cell: {x: 1, y: 6}
+    activeOnEvenTurn: 0
+    alwaysActive: 0
+  - cell: {x: 2, y: 6}
+    activeOnEvenTurn: 0
+    alwaysActive: 0
+  - cell: {x: 3, y: 6}
+    activeOnEvenTurn: 0
+    alwaysActive: 0
+  - cell: {x: 4, y: 6}
+    activeOnEvenTurn: 0
+    alwaysActive: 0
+  - cell: {x: 5, y: 6}
+    activeOnEvenTurn: 0
+    alwaysActive: 0
+  - cell: {x: 6, y: 6}
+    activeOnEvenTurn: 0
+    alwaysActive: 0
   iceWalls: []
   waters: []
   nonSlipTiles:

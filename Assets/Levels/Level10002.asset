@@ -23,14 +23,19 @@ MonoBehaviour:
   deadlyFireTiles:
   - cell: {x: 2, y: 1}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 3, y: 1}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 4, y: 1}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 5, y: 1}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 6, y: 1}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   iceWalls: []
   waters: []
   nonSlipTiles: []
@@ -38,4 +43,4 @@ MonoBehaviour:
   cornerLeftUpTiles: []
   cornerRightDownTiles: []
   cornerRightUpTiles: []
-  goal: {x: 1, y: 9}
+  goal: {x: 6, y: 9}
