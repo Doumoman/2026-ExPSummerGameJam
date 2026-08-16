@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81cd17b9193086144811cf5dffefe8c3, type: 3}
+  m_Name: Level01
+  m_EditorClassIdentifier: Assembly-CSharp::LevelData
+  width: 10
+  height: 10
+  spawn: {x: 0, y: 0}
+  walls:
+  - {x: 3, y: 2}
+  - {x: 7, y: 1}
+  - {x: 1, y: 6}
+  - {x: 8, y: 4}
+  fireWalls:
+  - {x: 4, y: 0}
+  - {x: 4, y: 1}
+  - {x: 7, y: 5}
+  - {x: 2, y: 7}
+  deadlyFireWalls:
+  - {x: 9, y: 5}
+  - {x: 5, y: 9}
+  fireTiles:
+  - cell: {x: 2, y: 0}
+    activeOnEvenTurn: 0
+  - cell: {x: 6, y: 3}
+    activeOnEvenTurn: 1
+  - cell: {x: 3, y: 6}
+    activeOnEvenTurn: 0
+  deadlyFireTiles:
+  - cell: {x: 8, y: 2}
+    activeOnEvenTurn: 1
+  iceWalls:
+  - cell: {x: 6, y: 0}
+    meltTurn: 2
+  - cell: {x: 9, y: 7}
+    meltTurn: 4
+  waters:
+  - {x: 1, y: 4}
+  - {x: 5, y: 6}
+  goal: {x: 9, y: 9}

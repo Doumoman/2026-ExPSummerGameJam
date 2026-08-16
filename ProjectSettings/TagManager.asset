@@ -2,8 +2,9 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
-  tags: []
+  serializedVersion: 3
+  tags:
+  - platform
   layers:
   - Default
   - TransparentFX
@@ -11,6 +12,18 @@ TagManager:
   - 
   - Water
   - UI
+  - Wall
+  - Ground
+  - Ladder
+  - Pushable
+  - NPC
+  - Door
+  - LockedBlock
+  - FluidParticle
+  - FallingPlatform
+  - Sensor
+  - MovingPlatform
+  - Holdable
   - 
   - 
   - 
@@ -24,20 +37,22 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Player
   m_SortingLayers:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background
+    uniqueID: 661117505
+    locked: 0
+  - name: Ground
+    uniqueID: 740596091
+    locked: 0
+  - name: Objects
+    uniqueID: 748480045
+    locked: 0
+  - name: UI
+    uniqueID: 1376446393
+    locked: 0
+  m_RenderingLayers:
+  - Default
