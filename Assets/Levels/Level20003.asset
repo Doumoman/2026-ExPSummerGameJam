@@ -29,7 +29,8 @@ MonoBehaviour:
   deadlyFireTiles: []
   iceWalls: []
   waters: []
-  nonSlipTiles: []
+  nonSlipTiles:
+  - {x: 5, y: 0}
   cornerLeftDownTiles: []
   cornerLeftUpTiles:
   - {x: 3, y: 6}

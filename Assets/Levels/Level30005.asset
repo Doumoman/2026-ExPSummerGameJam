@@ -27,6 +27,7 @@ MonoBehaviour:
   deadlyFireTiles:
   - cell: {x: 3, y: 9}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   iceWalls: []
   waters:
   - {x: 2, y: 6}

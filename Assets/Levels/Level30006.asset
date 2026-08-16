@@ -24,14 +24,19 @@ MonoBehaviour:
   deadlyFireTiles:
   - cell: {x: 2, y: 9}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 4, y: 9}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 2, y: 8}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 3, y: 8}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 4, y: 8}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   iceWalls: []
   waters: []
   nonSlipTiles: []

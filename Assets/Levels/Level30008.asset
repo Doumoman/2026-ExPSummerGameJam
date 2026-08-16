@@ -22,20 +22,26 @@ MonoBehaviour:
   breakableWalls: []
   pushableWalls:
   - {x: 3, y: 4}
-  fireTiles:
-  - cell: {x: 1, y: 0}
-    activeOnEvenTurn: 1
-  - cell: {x: 2, y: 0}
-    activeOnEvenTurn: 0
-  - cell: {x: 3, y: 0}
-    activeOnEvenTurn: 1
-  - cell: {x: 4, y: 0}
-    activeOnEvenTurn: 0
-  - cell: {x: 5, y: 0}
-    activeOnEvenTurn: 1
+  fireTiles: []
   deadlyFireTiles:
   - cell: {x: 6, y: 9}
     activeOnEvenTurn: 0
+    alwaysActive: 1
+  - cell: {x: 1, y: 0}
+    activeOnEvenTurn: 1
+    alwaysActive: 0
+  - cell: {x: 2, y: 0}
+    activeOnEvenTurn: 0
+    alwaysActive: 0
+  - cell: {x: 3, y: 0}
+    activeOnEvenTurn: 1
+    alwaysActive: 0
+  - cell: {x: 4, y: 0}
+    activeOnEvenTurn: 0
+    alwaysActive: 0
+  - cell: {x: 5, y: 0}
+    activeOnEvenTurn: 1
+    alwaysActive: 0
   iceWalls: []
   waters: []
   nonSlipTiles: []

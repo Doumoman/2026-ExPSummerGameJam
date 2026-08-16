@@ -24,54 +24,79 @@ MonoBehaviour:
   deadlyFireTiles:
   - cell: {x: 1, y: 8}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 3, y: 8}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 5, y: 8}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 1, y: 7}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 3, y: 7}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 5, y: 7}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 1, y: 6}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 3, y: 6}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 5, y: 6}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 1, y: 5}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 3, y: 5}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 5, y: 5}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 1, y: 4}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 3, y: 4}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 5, y: 4}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 1, y: 3}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 3, y: 3}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 5, y: 3}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 1, y: 2}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 3, y: 2}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 5, y: 2}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 1, y: 1}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 3, y: 1}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 5, y: 1}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   - cell: {x: 1, y: 0}
     activeOnEvenTurn: 0
+    alwaysActive: 1
   iceWalls: []
   waters: []
   nonSlipTiles: []
