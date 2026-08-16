@@ -182,17 +182,19 @@ public class GridMap
         _firePhase.TryGetValue(c, out var phase) && phase == FirePhase.Always;
 
     /// <summary>
-    /// meltTurn이 completedTurn 이하인 얼음 벽을 녹여 바닥으로 만든다. 녹은 칸 목록을 돌려준다.
-    /// 기준은 방금 끝난 턴이다. meltTurn이 그 턴까지는 버텨야 "meltTurn 턴짜리 얼음"이 된다.
+    /// meltTurn이 turn 이하인 얼음 벽을 녹여 바닥으로 만든다. 녹은 칸 목록을 돌려준다.
+    /// 기준은 지금 시작하는 턴이다. meltTurn이 3이면 3턴이 시작되는 순간 녹으므로
+    /// 막아내는 것은 1~2턴이고 3턴 이동부터는 지나갈 수 있다.
+    /// 이미 녹은 칸은 건너뛰므로 같은 턴에 여러 번 불려도 결과가 같다.
     /// </summary>
-    public List<Vector2Int> MeltIce(int completedTurn)
+    public List<Vector2Int> MeltIce(int turn)
     {
         var melted = new List<Vector2Int>();
 
         foreach (var pair in _iceMeltTurn)
         {
             var cell = pair.Key;
-            if (pair.Value > completedTurn) continue;
+            if (pair.Value > turn) continue;
             if (_tiles[cell.x, cell.y] != TileType.IceWall) continue;   // 이미 녹음
 
             _tiles[cell.x, cell.y] = TileType.Floor;
