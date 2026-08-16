@@ -82,31 +82,41 @@ public class PlayerController : MonoBehaviour
         if (dir == Vector2Int.zero) dir = swipeDir;
         if (dir == Vector2Int.zero) return;
 
-        var path = BuildSlidePath(dir);
+        var path = BuildSlidePath(dir, out var slideDir);
         if (path.Count == 0) return;   // 한 칸도 못 가면 턴도 오르지 않는다
 
         _turn++;
         RefreshHud();
-        StartSlide(path, dir);
+        StartSlide(path, slideDir);   // 전환 타일을 지났다면 입력 방향이 아니라 최종 방향이 들어간다
     }
 
     /// <summary>
     /// 막힐 때까지의 경로를 미리 전부 계산한다.
-    /// 맵 경계 밖은 IsWalkable이 false라서 반드시 멈추므로 무한루프가 되지 않는다.
+    /// 방향 전환 타일을 지나면 경로가 꺾이므로 최종 진행 방향을 finalDir 로 함께 돌려준다.
+    /// 맵 경계 밖은 IsWalkable이 false라 보통은 거기서 멈추지만, 전환 타일을 순환으로
+    /// 배치하면 영원히 돌 수 있어서 (칸, 방향) 조합이 반복되면 멈춘다.
     /// </summary>
-    List<Vector2Int> BuildSlidePath(Vector2Int dir)
+    List<Vector2Int> BuildSlidePath(Vector2Int dir, out Vector2Int finalDir)
     {
         var path = new List<Vector2Int>();
+        var visited = new HashSet<(Vector2Int, Vector2Int)>();
         var cur = _cell;
 
-        while (_board.IsWalkable(cur + dir))
+        finalDir = dir;
+
+        while (_board.IsWalkable(cur + finalDir))
         {
-            cur += dir;
+            cur += finalDir;
             path.Add(cur);
 
             // 안 미끄러지는 타일에 들어서면 그 칸에서 끝난다.
             // 이런 타일이 연달아 있으면 자연히 한 칸씩 걷게 되고, 한 칸짜리면 다음 입력부터 다시 미끄러진다.
             if (_board.StopsSlide(cur)) break;
+
+            // 방향 전환 타일이면 여기서 꺾는다. 입력 한 번이 한 턴이라 꺾여도 턴은 오르지 않는다.
+            finalDir = _board.Deflect(cur, finalDir);
+
+            if (!visited.Add((cur, finalDir))) break;
         }
         return path;
     }

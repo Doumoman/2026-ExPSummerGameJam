@@ -46,6 +46,8 @@ public class GridMap
 
         Paint(data.waters, TileType.Water);
         Paint(data.nonSlipTiles, TileType.NonSlip);
+        Paint(data.turnLeftTiles, TileType.TurnLeft);
+        Paint(data.turnRightTiles, TileType.TurnRight);
 
         if (data.pushableWalls != null)
         {

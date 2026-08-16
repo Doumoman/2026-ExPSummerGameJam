@@ -54,6 +54,12 @@ public class LevelData : ScriptableObject
     [Tooltip("안 미끄러지는 타일 - 들어서는 순간 슬라이드가 멈춘다. 붙여 놓으면 한 칸씩 걷는 구간이 된다")]
     public List<Vector2Int> nonSlipTiles = new List<Vector2Int>();
 
+    [Tooltip("좌회전 타일 - 진행 방향을 왼쪽으로 꺾는다. 턴 소모 없이 계속 미끄러진다")]
+    public List<Vector2Int> turnLeftTiles = new List<Vector2Int>();
+
+    [Tooltip("우회전 타일 - 진행 방향을 오른쪽으로 꺾는다. 턴 소모 없이 계속 미끄러진다")]
+    public List<Vector2Int> turnRightTiles = new List<Vector2Int>();
+
     [Tooltip("도착 지점. 10x10 맵의 우상단 끝은 (9,9)")]
     public Vector2Int goal = new Vector2Int(9, 9);
 

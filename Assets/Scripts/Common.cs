@@ -5,6 +5,12 @@ public enum TileType
     /// <summary>안 미끄러지는 타일 - 통과 가능. 들어서는 순간 슬라이드가 멈춘다</summary>
     NonSlip,
 
+    /// <summary>좌회전 타일 - 통과 가능. 진행 방향을 왼쪽으로 꺾는다. 턴 소모 없음</summary>
+    TurnLeft,
+
+    /// <summary>우회전 타일 - 통과 가능. 진행 방향을 오른쪽으로 꺾는다. 턴 소모 없음</summary>
+    TurnRight,
+
     /// <summary>일반 벽(기둥) - 통과 불가. 피해 없음</summary>
     Wall,
 

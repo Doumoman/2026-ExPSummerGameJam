@@ -42,6 +42,8 @@ public class BoardView : MonoBehaviour
     [SerializeField] TileVisual _water = new TileVisual { color = new Color(0.25f, 0.55f, 0.95f) };
     [SerializeField] TileVisual _frozen = new TileVisual { color = new Color(0.8f, 0.92f, 0.98f) };
     [SerializeField] TileVisual _nonSlip = new TileVisual { color = new Color(0.72f, 0.65f, 0.5f) };
+    [SerializeField] TileVisual _turnLeft = new TileVisual { color = new Color(0.35f, 0.75f, 0.7f), label = "L" };
+    [SerializeField] TileVisual _turnRight = new TileVisual { color = new Color(0.55f, 0.8f, 0.4f), label = "R" };
     [SerializeField] TileVisual _goal = new TileVisual { color = new Color(0.2f, 0.85f, 0.3f) };
 
     [Header("Layout")]
@@ -75,8 +77,23 @@ public class BoardView : MonoBehaviour
     public bool HasPushableWall(Vector2Int cell) => _map.HasPushableWall(cell);
 
     /// <summary>
+    /// 방향 전환 타일이면 꺾인 방향을, 아니면 들어온 방향을 그대로 돌려준다.
+    /// 좌회전은 (x,y) → (-y,x), 우회전은 (x,y) → (y,-x). 플레이어와 밀리는 벽이 같이 쓴다.
+    /// </summary>
+    public Vector2Int Deflect(Vector2Int cell, Vector2Int dir)
+    {
+        switch (_map.Get(cell))
+        {
+            case TileType.TurnLeft: return new Vector2Int(-dir.y, dir.x);
+            case TileType.TurnRight: return new Vector2Int(dir.y, -dir.x);
+            default: return dir;
+        }
+    }
+
+    /// <summary>
     /// 밀리는 벽을 dir 방향으로 막힐 때까지 밀어낸다. 실제로 민 칸수를 돌려준다(0이면 못 밀었다).
     /// 정지 조건은 플레이어와 같다 - 통과 불가 타일/맵 경계에 막히거나, 안 미끄러지는 타일에 올라섰을 때.
+    /// 방향 전환 타일에서는 플레이어와 똑같이 꺾인다.
     /// 지나가는 칸의 불 타일은 꺼지고, 물은 건드리지 않는다.
     /// </summary>
     public int PushWall(Vector2Int cell, Vector2Int dir, float moveDuration)
@@ -84,14 +101,21 @@ public class BoardView : MonoBehaviour
         if (!_pushableMarkers.TryGetValue(cell, out var marker)) return 0;
 
         var path = new List<Vector2Int>();
+        var visited = new HashSet<(Vector2Int, Vector2Int)>();
         var cur = cell;
+        var curDir = dir;
 
-        while (_map.IsWalkable(cur + dir))
+        while (_map.IsWalkable(cur + curDir))
         {
-            cur += dir;
+            cur += curDir;
             path.Add(cur);
 
             if (StopsSlide(cur)) break;
+
+            curDir = Deflect(cur, curDir);
+
+            // 전환 타일을 순환으로 배치하면 영원히 돌 수 있어서 같은 (칸, 방향)이 다시 나오면 멈춘다.
+            if (!visited.Add((cur, curDir))) break;
         }
 
         if (path.Count == 0) return 0;
@@ -237,6 +261,8 @@ public class BoardView : MonoBehaviour
             case TileType.Water: return _water;
             case TileType.Frozen: return _frozen;
             case TileType.NonSlip: return _nonSlip;
+            case TileType.TurnLeft: return _turnLeft;
+            case TileType.TurnRight: return _turnRight;
             case TileType.Goal: return _goal;
             default: return null;
         }
