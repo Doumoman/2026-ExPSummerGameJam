@@ -240,21 +240,21 @@ public class BoardView : MonoBehaviour
     }
 
     /// <summary>
-    /// 이동이 끝난 직후 호출한다. 방금 끝난 턴 기준으로 얼음을 녹이고, 다음 턴 기준으로 불 표시를 갱신한다.
-    /// 두 기준이 다른 게 맞다. 얼음은 "몇 턴을 버텼는가"라 끝난 턴을 보고,
-    /// 불 표시는 "이제 어느 턴을 두는가"라 다음 턴을 본다.
+    /// 이동이 끝난 직후 호출한다. 방금 끝난 턴 기준으로 얼음을 녹인다.
+    /// 얼음은 "몇 턴을 버텼는가"라 끝난 턴을 본다.
     /// meltTurn이 3이면 3턴 이동까지 막아내고 그 이동이 끝난 이 시점에 녹아서 4턴부터 지나갈 수 있다.
+    /// 불 표시는 여기서 건드리지 않는다. 다음 턴이 실제로 시작될 때 RefreshForTurn 으로 넘긴다.
     /// </summary>
     public void PostMove(int completedTurn)
     {
         foreach (var cell in _map.MeltIce(completedTurn))
             if (_markers.TryGetValue(cell, out var marker)) marker.Renderer.gameObject.SetActive(false);
-
-        RefreshForTurn(completedTurn + 1);
     }
 
     /// <summary>
     /// 불 타일의 활성/비활성 표현을 해당 턴 기준으로 갱신한다.
+    /// 턴이 시작되는 순간에 부른다. 앞 턴이 끝나자마자 미리 바꿔두면 방금 둔 수의 결과를 보기도 전에
+    /// 판이 뒤집혀서, 다음 수를 두기 전까지는 앞 턴의 불 상태가 그대로 남아 있어야 한다.
     /// 상시 활성인 불은 턴과 무관하게 전용 표현으로 고정된다.
     /// </summary>
     public void RefreshForTurn(int turn)
@@ -339,8 +339,10 @@ public class BoardView : MonoBehaviour
             }
         }
 
-        // 첫 이동은 1턴이므로 1턴 기준으로 보여준다.
-        RefreshForTurn(1);
+        // 아직 아무 수도 두지 않았으므로 0턴 기준으로 보여준다.
+        // 첫 이동인 1턴 기준으로 미리 켜 두면 1턴이 시작될 때 바뀔 게 없어서 첫 턴만 깜빡임이 빠진다.
+        // 매 턴 "직전 턴 상태를 보고 있다가 턴이 시작되면서 뒤집힌다"는 규칙을 1턴에도 그대로 맞춘 것이다.
+        RefreshForTurn(0);
     }
 
     TileVisual VisualOf(TileType type)
