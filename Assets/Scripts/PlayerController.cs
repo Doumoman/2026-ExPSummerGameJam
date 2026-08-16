@@ -15,6 +15,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] TMP_Text _hpText;
     [SerializeField] TMP_Text _turnText;
 
+    [Tooltip("Bool 파라미터 IsMoving 으로 idle/walk 를 전환한다. 비워두면 애니메이션 없이 동작한다")]
+    [SerializeField] Animator _animator;
+
     [Header("Tuning")]
     [SerializeField] int _maxHp = 2;
 
@@ -26,6 +29,8 @@ public class PlayerController : MonoBehaviour
 
     [Header("Input")]
     [SerializeField] SwipeInput _swipe = new SwipeInput();
+
+    static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
 
     Vector2Int _cell;
     Vector2Int _slideDir;
@@ -123,6 +128,8 @@ public class PlayerController : MonoBehaviour
 
     void StartSlide(List<Vector2Int> path, Vector2Int dir)
     {
+        SetMoving(true);
+
         var start = _cell;
         _cell = path[path.Count - 1];
         _slideDir = dir;
@@ -167,6 +174,7 @@ public class PlayerController : MonoBehaviour
     void OnSlideEnd()
     {
         _slide = null;
+        SetMoving(false);
 
         // 밀리는 벽은 _tiles 위에 얹혀 있어 GetTile 로는 안 잡히므로 따로 물어본다.
         // 벽이 미끄러지는 동안은 입력을 잠근다.
@@ -192,6 +200,8 @@ public class PlayerController : MonoBehaviour
     /// <summary>슬라이드 도중 사망하면 그 칸에서 즉시 멈춘다.</summary>
     void StopSlideAt(Vector2Int cell)
     {
+        SetMoving(false);   // 이걸 빠뜨리면 죽은 뒤에도 걷기 애니메이션이 계속 돈다
+
         if (_slide != null)
         {
             _slide.Kill();
@@ -228,6 +238,12 @@ public class PlayerController : MonoBehaviour
     }
 
     static Vector3 ToWorld(Vector2Int cell) => new Vector3(cell.x, cell.y, 0f);
+
+    /// <summary>미끄러지는 동안만 true. 슬라이드 길이가 가변이라 Trigger가 아니라 Bool 을 쓴다.</summary>
+    void SetMoving(bool moving)
+    {
+        if (_animator != null) _animator.SetBool(IsMovingHash, moving);
+    }
 
     void Damage(int amount)
     {
