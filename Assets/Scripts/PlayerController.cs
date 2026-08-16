@@ -13,7 +13,6 @@ public class PlayerController : MonoBehaviour
     [Header("References")]
     [SerializeField] BoardView _board;
     [SerializeField] TMP_Text _hpText;
-    [SerializeField] TMP_Text _turnText;
 
     [Tooltip("Bool 파라미터 IsMoving 으로 idle/walk 를 전환한다. 비워두면 애니메이션 없이 동작한다")]
     [SerializeField] Animator _animator;
@@ -299,6 +298,30 @@ public class PlayerController : MonoBehaviour
         else Debug.LogWarning("마지막 스테이지 클리어");
     }
 
+    /// <summary>
+    /// 현재 판을 처음부터 다시 시작한다. 다시하기 버튼의 onClick 에 연결한다.
+    /// 씬을 통째로 다시 불러오므로 얼음/물/밀린 벽 같은 런타임 변화가 전부 초기화된다.
+    /// 사망이나 클리어 이후에도 눌러야 하므로 상태 플래그를 보지 않는다.
+    /// </summary>
+    public void RestartStage()
+    {
+        // 진행 중이던 트윈이 씬 로드 뒤에 콜백을 때리지 않도록 먼저 정리한다.
+        if (_slide != null)
+        {
+            _slide.Kill();
+            _slide = null;
+        }
+
+        var scene = SceneManager.GetActiveScene();
+        if (scene.buildIndex < 0)
+        {
+            Debug.LogWarning("이 씬이 Build Settings에 등록되어 있지 않아 다시 시작할 수 없다.", this);
+            return;
+        }
+
+        SceneManager.LoadScene(scene.buildIndex);
+    }
+
     /// <summary>한 프레임에 한 방향만 반환하므로 대각선 입력이 생기지 않는다.</summary>
     static Vector2Int ReadKeyboard()
     {
@@ -357,7 +380,6 @@ public class PlayerController : MonoBehaviour
     void RefreshHud()
     {
         if (_hpText != null) _hpText.text = $"HP {_hp} / {_maxHp}";
-        if (_turnText != null) _turnText.text = $"TURN {_turn}";
     }
 
     /// <summary>
