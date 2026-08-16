@@ -31,6 +31,10 @@ public class PlayerController : MonoBehaviour
 
     static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
     static readonly int DirHash = Animator.StringToHash("Dir");
+    static readonly int DeathHash = Animator.StringToHash("Death");
+
+    /// <summary>스테이트 이름. 파라미터가 아니라 스테이트를 직접 재생할 때 쓴다.</summary>
+    static readonly int WalkStateHash = Animator.StringToHash("walk");
 
     Vector2Int _cell;
     Vector2Int _slideDir;
@@ -70,6 +74,9 @@ public class PlayerController : MonoBehaviour
         _hp = _maxHp;
         _turn = 0;
         RefreshHUD();
+
+        // 다시하기로 들어와도 항상 walk 부터 시작한다.
+        ResetAnimator();
 
         // 첫 이동은 1턴이다. 0턴은 아직 아무것도 안 했으므로 보통은 녹을 얼음이 없다.
         // 0턴 기준 불 표시는 BuildMap 이 이미 맞춰 놓았고, 1턴으로 뒤집는 건 첫 입력이 맡는다.
@@ -367,7 +374,28 @@ public class PlayerController : MonoBehaviour
     {
         if (_gameOver) return;
         _gameOver = true;
+
+        // Any State 전환은 위에서부터 평가되고 방향 전환 4개가 Death 보다 앞에 있다.
+        // IsMoving 을 먼저 내려야 방향 스테이트가 가로채지 않고 Death 로 넘어간다.
+        SetMoving(false);
+        if (_animator != null) _animator.SetTrigger(DeathHash);
+
         Debug.LogWarning("Game Over");
+    }
+
+    /// <summary>
+    /// 애니메이터를 판 시작 상태로 되돌린다.
+    /// 다시하기는 씬을 새로 부르므로 Animator 도 새로 생기지만, 죽은 자세가 한 프레임 비치거나
+    /// 소비되지 않은 Death 트리거가 남는 경우를 막으려고 시작 시 명시적으로 맞춘다.
+    /// </summary>
+    void ResetAnimator()
+    {
+        if (_animator == null) return;
+
+        _animator.ResetTrigger(DeathHash);
+        _animator.SetBool(IsMovingHash, false);
+        _animator.SetInteger(DirHash, 0);
+        _animator.Play(WalkStateHash, 0, 0f);   // 0번 레이어, 0프레임부터
     }
 
     void RefreshHUD()
