@@ -57,6 +57,9 @@ public class StageSelect : MonoBehaviour
 
     void OnStageClicked(int stage)
     {
+        // 잠긴 스테이지를 눌러도 눌렀다는 반응은 있어야 한다.
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySfx(Sfx.UIClick);
+
         if (stage <= _unlockedStage) Debug.Log($"스테이지 {stage} 선택");
         else Debug.Log($"스테이지 {stage} 잠김 (현재 열린 스테이지: {_unlockedStage})");
     }

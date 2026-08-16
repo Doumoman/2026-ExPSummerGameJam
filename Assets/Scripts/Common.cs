@@ -55,3 +55,74 @@ public enum TileType
 
     Goal,
 }
+
+/// <summary>
+/// 효과음 종류. Resources/Sounds/SFX 의 파일 하나에 하나씩 대응한다.
+/// 파일명에 공백과 하이픈, 한글이 섞여 있어 그대로는 식별자로 못 쓰므로 영문 이름을 따로 두고
+/// 실제 파일명은 각 항목 주석에 적어둔다. 파일명이 바뀌면 주석과 매핑을 같이 고쳐야 한다.
+/// </summary>
+public enum Sfx
+{
+    /// <summary>소리 없음. 기본값이라 지정 안 한 필드는 아무것도 재생하지 않는다</summary>
+    None = 0,
+
+    // ---- UI ----
+
+    /// <summary>"UI Click"</summary>
+    UIClick,
+
+    /// <summary>"스테이지등장레디" - 판 시작 연출</summary>
+    StageIntro,
+
+    /// <summary>"스테이지클리어"</summary>
+    StageClear,
+
+    // ---- 이동 ----
+
+    /// <summary>"슬라이드지속음" - 미끄러지는 동안 이어지는 소리</summary>
+    SlideLoop,
+
+    /// <summary>"일반벽충돌정지" - 벽에 부딪혀 멈춤</summary>
+    WallHit,
+
+    /// <summary>"모서리벽충돌" - 모서리 타일 닫힌 면에 부딪힘</summary>
+    CornerHit,
+
+    /// <summary>"안미끄러지는타일정지" - 미끄러지지 않는 타일에 올라서서 멈춤</summary>
+    NonSlipStop,
+
+    // ---- 벽 ----
+
+    /// <summary>"벽파괴-이때벽충돌사운드X" - 깨지는 벽 파괴. 파일명대로 이때는 WallHit 를 같이 내지 않는다</summary>
+    WallBreak,
+
+    // ---- 물 / 얼음 ----
+
+    /// <summary>"물타일통과"</summary>
+    WaterPass,
+
+    /// <summary>"동결짧게" - 지나간 물이 얼어붙음</summary>
+    Freeze,
+
+    /// <summary>"얼음벽녹음붕괴" - 얼음 벽이 녹아 무너짐</summary>
+    IceMelt,
+
+    // ---- 불 ----
+
+    /// <summary>"불활성화비활성화" - 불이 켜지고 꺼지는 깜빡임</summary>
+    FireToggle,
+
+    /// <summary>
+    /// "불접촉-피해1-즉사" - HP 를 1 깎는 불(FireTile)에 닿는 소리.
+    /// 파일명에 "즉사"가 붙어 있지만 즉사 불이 아니다. 헷갈리지 마라.
+    /// </summary>
+    FireHit,
+
+    /// <summary>"즉사불" - HP 를 2 깎는 즉사 불(FireTileDeadly)에 닿는 소리</summary>
+    FireDeadly,
+
+    // ---- 플레이어 ----
+
+    /// <summary>"플레이어사망"</summary>
+    PlayerDeath,
+}

@@ -81,6 +81,8 @@ public class PlayerController : MonoBehaviour
         // 첫 이동은 1턴이다. 0턴은 아직 아무것도 안 했으므로 보통은 녹을 얼음이 없다.
         // 0턴 기준 불 표시는 BuildMap 이 이미 맞춰 놓았고, 1턴으로 뒤집는 건 첫 입력이 맡는다.
         _board.MeltIce(0);
+
+        Play(Sfx.StageIntro);
     }
 
     void Update()
@@ -164,6 +166,7 @@ public class PlayerController : MonoBehaviour
     void StartSlide(List<Vector2Int> path, Vector2Int dir, bool blocked)
     {
         SetMoving(true);
+        PlayLoop(Sfx.SlideLoop);   // 미끄러지는 동안 계속. 멈출 때 끊는다
 
         var start = _cell;
         _cell = path[path.Count - 1];
@@ -195,11 +198,14 @@ public class PlayerController : MonoBehaviour
     {
         switch (_board.GetTile(cell))
         {
+            case TileType.Water:
+                Play(Sfx.WaterPass);
+                break;
             case TileType.FireTile:
-                if (_board.IsFireTileActive(cell, _turn)) Damage(_fireTileDamage);
+                if (_board.IsFireTileActive(cell, _turn)) { Play(Sfx.FireHit); Damage(_fireTileDamage); }
                 break;
             case TileType.FireTileDeadly:
-                if (_board.IsFireTileActive(cell, _turn)) Kill();
+                if (_board.IsFireTileActive(cell, _turn)) { Play(Sfx.FireDeadly); Kill(); }
                 break;
             case TileType.Goal:
                 _cleared = true;   // 지나쳐도 클리어. 슬라이드는 끝까지 간 뒤 전환한다
@@ -213,12 +219,15 @@ public class PlayerController : MonoBehaviour
     {
         _slide = null;
         SetMoving(false);
+        StopLoop();   // 플레이어 슬라이드 끝
 
         // 불 위에서 멈춰 서면 즉사한다. 스쳐 지나가는 것과 달리 그 위에 그대로 남는 것이라
         // 1데미지 불이든 즉사 불이든 결과가 같다. 지나가면서 이미 받은 피해와는 별개다.
         // IsFireTileActive 는 불 타일이 아닌 칸에는 false 라 타입을 따로 가릴 필요가 없다.
         if (_board.IsFireTileActive(_cell, _turn))
         {
+            // 밟고 지나갈 때와 같은 규칙 - 불 종류에 맞는 접촉음 + 사망음이 함께 난다.
+            Play(_board.GetTile(_cell) == TileType.FireTileDeadly ? Sfx.FireDeadly : Sfx.FireHit);
             Kill();
             return;   // 죽은 뒤에 앞칸을 밀거나 부수지 않는다. EndTurn 도 _gameOver 면 어차피 아무것도 안 한다
         }
@@ -226,6 +235,7 @@ public class PlayerController : MonoBehaviour
         // 벽에 부딪혀 멈춘 경우에만 앞칸에 작용한다.
         // 안 미끄러지는 타일에 올라서서 스스로 선 것은 충돌이 아니므로 앞칸을 건드리지 않는다.
         if (_slideBlocked) HitFront(_slideDir);
+        else if (_board.StopsSlide(_cell)) Play(Sfx.NonSlipStop);   // 미끄러지다 바닥에 붙잡혀 멈춤
 
         // 밀린 벽이 아직 움직이는 중이면 그 벽이 멈추는 순간 EndTurn 이 불린다.
         if (!_wallMoving) EndTurn();
@@ -242,7 +252,37 @@ public class PlayerController : MonoBehaviour
         _wallMoving = false;
 
         if (_gameOver) return;
-        if (_cleared) LoadNextStage();
+        if (_cleared) { Play(Sfx.StageClear); LoadNextStage(); }
+    }
+
+    /// <summary>밀리는 벽은 플레이어와 같은 소리를 낮은 피치로 낸다. 무겁고 큰 것이 움직인다는 신호.</summary>
+    const float WallPitch = 0.7f;
+
+    /// <summary>SoundManager 가 아직 없어도 터지지 않게 감싼다.</summary>
+    static void Play(Sfx sfx, float pitch = 1f)
+    {
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySfx(sfx, 1f, pitch);
+    }
+
+    static void PlayLoop(Sfx sfx, float pitch = 1f)
+    {
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySfxLoop(sfx, 1f, pitch);
+    }
+
+    static void StopLoop()
+    {
+        if (SoundManager.Instance != null) SoundManager.Instance.StopSfxLoop();
+    }
+
+    /// <summary>
+    /// 밀린 벽이 완전히 멈춘 순간. 벽 슬라이드 소리를 끊고 정지음을 낸 뒤 턴을 넘긴다.
+    /// PushWall 이 연쇄까지 전부 끝난 뒤 한 번만 불러준다.
+    /// </summary>
+    void OnPushedWallSettled()
+    {
+        StopLoop();
+        Play(Sfx.WallHit, WallPitch);
+        EndTurn();
     }
 
     /// <summary>
@@ -257,16 +297,44 @@ public class PlayerController : MonoBehaviour
         // 벽이 미끄러지는 동안은 입력을 잠근다.
         if (_board.HasPushableWall(front))
         {
-            int pushed = _board.PushWall(front, dir, _moveDuration, _turn, EndTurn);
+            int pushed = _board.PushWall(front, dir, _moveDuration, _turn, OnPushedWallSettled);
             _cooldown = pushed * _moveDuration;
 
-            if (pushed > 0) _wallMoving = true;   // 벽이 멈추는 순간 EndTurn 이 불린다
+            if (pushed > 0)
+            {
+                _wallMoving = true;   // 벽이 멈추는 순간 OnPushedWallSettled 가 불린다
+
+                Play(Sfx.WallHit, WallPitch);         // 밀기 시작
+                PlayLoop(Sfx.SlideLoop, WallPitch);   // 벽이 미끄러지는 동안
+            }
         }
 
         switch (_board.GetTile(front))
         {
             case TileType.BreakableWall:
-                _board.BreakWall(front);
+                // 파괴음이 충돌음을 대신한다. 둘을 겹쳐 내면 파괴가 묻힌다.
+                if (_board.BreakWall(front)) Play(Sfx.WallBreak);
+                break;
+
+            // 얼음 계열도 통과 불가라 부딪히면 일반 벽과 같은 정지음을 낸다.
+            // IceWall 은 아직 안 녹은 얼음 벽, Frozen 은 지나간 물이 얼어붙은 칸이다.
+            case TileType.Wall:
+            case TileType.IceWall:
+            case TileType.Frozen:
+                Play(Sfx.WallHit);
+                break;
+
+            case TileType.CornerLeftDown:
+            case TileType.CornerLeftUp:
+            case TileType.CornerRightDown:
+            case TileType.CornerRightUp:
+                Play(Sfx.CornerHit);   // 모서리 닫힌 면에 부딪힘
+                break;
+
+            case TileType.Floor:
+                // 통과 불가인데 바닥으로 나오는 건 맵 밖에 부딪힌 경우다.
+                // 밀리는 벽도 바닥 위에 얹혀 있지만 그쪽은 위에서 이미 소리를 냈으므로 뺀다.
+                if (!_board.IsWalkable(front) && !_board.HasPushableWall(front)) Play(Sfx.WallHit);
                 break;
         }
     }
@@ -275,6 +343,7 @@ public class PlayerController : MonoBehaviour
     void StopSlideAt(Vector2Int cell)
     {
         SetMoving(false);   // 이걸 빠뜨리면 죽은 뒤에도 걷기 애니메이션이 계속 돈다
+        StopLoop();         // 마찰음도 같이 끊어야 죽은 채로 계속 미끄러지는 소리가 안 난다
 
         if (_slide != null)
         {
@@ -326,6 +395,8 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void RestartStage()
     {
+        Play(Sfx.UIClick);
+
         // 진행 중이던 트윈이 씬 로드 뒤에 콜백을 때리지 않도록 먼저 정리한다.
         if (_slide != null)
         {
@@ -400,6 +471,7 @@ public class PlayerController : MonoBehaviour
         // IsMoving 을 먼저 내려야 방향 스테이트가 가로채지 않고 Death 로 넘어간다.
         SetMoving(false);
         if (_animator != null) _animator.SetTrigger(DeathHash);
+        Play(Sfx.PlayerDeath);
 
         Debug.LogWarning("Game Over");
     }

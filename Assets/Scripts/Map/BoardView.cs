@@ -87,6 +87,9 @@ public class BoardView : MonoBehaviour
 
     GridMap _map;
 
+    /// <summary>직전에 표시를 맞춘 턴. 홀짝이 실제로 뒤집혔는지 보려고 들고 있는다. -1 이면 아직 없음.</summary>
+    int _lastRefreshTurn = -1;
+
     readonly Dictionary<Vector2Int, Marker> _markers = new Dictionary<Vector2Int, Marker>();
 
     /// <summary>
@@ -282,11 +285,17 @@ public class BoardView : MonoBehaviour
     /// </summary>
     public void MeltIce(int turn)
     {
+        bool any = false;
+
         foreach (var cell in _map.MeltIce(turn))
         {
             if (_markers.TryGetValue(cell, out var marker)) marker.Renderer.gameObject.SetActive(false);
             ResetBase(cell);   // 얼음의 받침이 남으면 안 되므로 빈 칸 바닥으로 되돌린다
+            any = true;
         }
+
+        // 한 턴에 여러 장이 같이 녹아도 소리는 한 번만 낸다.
+        if (any) Play(Sfx.IceMelt);
     }
 
     /// <summary>
@@ -297,6 +306,8 @@ public class BoardView : MonoBehaviour
     /// </summary>
     public void RefreshForTurn(int turn)
     {
+        bool hasBlinking = false;
+
         foreach (var pair in _markers)
         {
             var cell = pair.Key;
@@ -310,12 +321,28 @@ public class BoardView : MonoBehaviour
             {
                 case TileType.FireTile:
                     Apply(marker, always ? _fireTileAlways : (active ? _fireTileOn : _fireTileOff), cell);
+                    if (!always) hasBlinking = true;
                     break;
                 case TileType.FireTileDeadly:
                     Apply(marker, always ? _fireTileDeadlyAlways : (active ? _fireTileDeadlyOn : _fireTileDeadlyOff), cell);
+                    if (!always) hasBlinking = true;
                     break;
             }
         }
+
+        // 홀짝이 실제로 뒤집힌 턴에만, 맵 전체에 대해 한 번만 낸다.
+        // 불 하나마다 내면 불이 열 개인 판에서 열 개가 겹쳐 울린다.
+        // 상시 활성 불만 있는 판은 깜빡이지 않으므로 소리도 없다.
+        if (hasBlinking && _lastRefreshTurn >= 0 && (turn % 2) != (_lastRefreshTurn % 2))
+            Play(Sfx.FireToggle);
+
+        _lastRefreshTurn = turn;
+    }
+
+    /// <summary>SoundManager 가 아직 없어도 터지지 않게 감싼다.</summary>
+    static void Play(Sfx sfx)
+    {
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySfx(sfx);
     }
 
     /// <summary>
@@ -340,6 +367,7 @@ public class BoardView : MonoBehaviour
         if (_map.Get(cell) != TileType.Water) return;
 
         _map.SetTile(cell, TileType.Frozen);
+        Play(Sfx.Freeze);
 
         // Apply 가 두 레이어를 같이 칠하므로 얼어붙은 물의 받침도 여기서 따라온다.
         if (_markers.TryGetValue(cell, out var marker)) Apply(marker, _frozen, cell);
@@ -360,6 +388,7 @@ public class BoardView : MonoBehaviour
         }
 
         _map = _level.CreateRuntime();
+        _lastRefreshTurn = -1;   // 다시 구우면 첫 갱신에서는 깜빡임 소리를 내지 않는다
 
         ClearBoard();
         var container = CreateContainer();
