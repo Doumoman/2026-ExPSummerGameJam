@@ -12,11 +12,12 @@ public class BoardView : MonoBehaviour
 {
     const string ContainerName = "_Generated";
 
-    /// <summary>칸 하나에 붙은 표현물. 라벨은 필요할 때만 만든다.</summary>
+    /// <summary>칸 하나에 붙은 표현물. 라벨과 Animator 는 필요할 때만 만든다.</summary>
     class Marker
     {
         public SpriteRenderer Renderer;
         public TextMeshPro Label;
+        public Animator Animator;
     }
 
     [Header("Level")]
@@ -368,11 +369,13 @@ public class BoardView : MonoBehaviour
         }
     }
 
-    /// <summary>색 / 스프라이트 / 라벨을 한꺼번에 적용한다. 라벨은 내용이 있을 때만 만든다.</summary>
+    /// <summary>색 / 스프라이트 / 애니메이션 / 라벨을 한꺼번에 적용한다. 라벨과 애니메이션은 내용이 있을 때만 만든다.</summary>
     void Apply(Marker marker, TileVisual visual, Vector2Int cell)
     {
         marker.Renderer.sprite = visual.sprite != null ? visual.sprite : _square;
         marker.Renderer.color = visual.color;
+
+        ApplyAnimation(marker, visual.controller);
 
         if (string.IsNullOrEmpty(visual.label))
         {
@@ -386,6 +389,32 @@ public class BoardView : MonoBehaviour
         marker.Label.text = ResolveLabel(visual.label, cell);
         marker.Label.color = visual.labelColor;
         marker.Label.fontSize = visual.labelSize;
+    }
+
+    /// <summary>
+    /// 마커에 애니메이션을 걸거나 뗀다. 클립이 SpriteRenderer 의 m_Sprite 를 매 프레임 덮어쓰므로
+    /// 애니메이션이 붙는 순간부터 위에서 넣은 정지 스프라이트는 의미가 없어진다.
+    /// 뗄 때는 Animator 를 꺼야 스프라이트 소유권이 다시 이쪽으로 돌아온다.
+    ///
+    /// 컨트롤러가 실제로 바뀔 때만 갈아끼우는 게 핵심이다. 같은 표현을 매 턴 다시 Apply 해도
+    /// 재생이 처음으로 되감기지 않아야, 계속 켜져 있는 불이 턴마다 점화 연출을 반복하지 않는다.
+    /// 반대로 꺼졌다 켜지면 컨트롤러가 달라지므로 자연히 점화부터 다시 재생된다.
+    /// </summary>
+    void ApplyAnimation(Marker marker, RuntimeAnimatorController controller)
+    {
+        if (marker.Animator == null)
+        {
+            // 정지 이미지끼리만 오가는 타일에는 Animator 를 아예 만들지 않는다.
+            if (controller == null) return;
+            marker.Animator = marker.Renderer.gameObject.AddComponent<Animator>();
+        }
+        else if (marker.Animator.runtimeAnimatorController == controller)
+        {
+            return;
+        }
+
+        marker.Animator.runtimeAnimatorController = controller;
+        marker.Animator.enabled = controller != null;
     }
 
     /// <summary>얼음 벽은 {n} 을 녹는 턴 숫자로 바꿔준다.</summary>

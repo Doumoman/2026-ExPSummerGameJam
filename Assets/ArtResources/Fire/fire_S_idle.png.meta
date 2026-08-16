@@ -1,22 +1,16 @@
 fileFormatVersion: 2
-guid: 06a3d92e0a7d9f348b046551aa649198
+guid: a3a393775d143004f84edf21098fe045
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3664555592628579922
-    second: melty_0
+      213: -707859970047543756
+    second: fire_S_idle_0
   - first:
-      213: 6703461601304982581
-    second: melty_1
+      213: 2602702316394258735
+    second: fire_S_idle_1
   - first:
-      213: 5568399723444795923
-    second: melty_2
-  - first:
-      213: 8998442822227959924
-    second: melty_3
-  - first:
-      213: 7737596173168541470
-    second: melty_4
+      213: 216607246006438788
+    second: fire_S_idle_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -58,12 +52,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 180
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -109,32 +103,6 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WindowsStoreApps
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
     buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -151,13 +119,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: melty_0
+      name: fire_S_idle_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 52
-        width: 214
-        height: 162
+        x: 44
+        y: 45
+        width: 48
+        height: 72
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -166,20 +134,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ea1d3b9aa12e42dc0800000000000000
-      internalID: -3664555592628579922
+      spriteID: 436f89e8b1d2d26f0800000000000000
+      internalID: -707859970047543756
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: melty_1
+      name: fire_S_idle_1
       rect:
         serializedVersion: 2
-        x: 251
-        y: 54
-        width: 140
-        height: 154
+        x: 168
+        y: 43
+        width: 55
+        height: 75
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -188,20 +156,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 53431475fca770d50800000000000000
-      internalID: 6703461601304982581
+      spriteID: f2124c097f7ae1420800000000000000
+      internalID: 2602702316394258735
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: melty_2
+      name: fire_S_idle_2
       rect:
         serializedVersion: 2
-        x: 420
-        y: 57
-        width: 56
-        height: 210
+        x: 301
+        y: 45
+        width: 47
+        height: 72
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -210,52 +178,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 31a7f4bbb0ee64d40800000000000000
-      internalID: 5568399723444795923
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: melty_3
-      rect:
-        serializedVersion: 2
-        x: 502
-        y: 56
-        width: 98
-        height: 192
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 470af8e2214e0ec70800000000000000
-      internalID: 8998442822227959924
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: melty_4
-      rect:
-        serializedVersion: 2
-        x: 627
-        y: 0
-        width: 140
-        height: 202
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e1ff12559b6716b60800000000000000
-      internalID: 7737596173168541470
+      spriteID: 48b4df1842b810300800000000000000
+      internalID: 216607246006438788
       vertices: []
       indices: 
       edges: []
@@ -264,7 +188,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -274,11 +198,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      melty_0: -3664555592628579922
-      melty_1: 6703461601304982581
-      melty_2: 5568399723444795923
-      melty_3: 8998442822227959924
-      melty_4: 7737596173168541470
+      fire_S_idle_0: -707859970047543756
+      fire_S_idle_1: 2602702316394258735
+      fire_S_idle_2: 216607246006438788
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
