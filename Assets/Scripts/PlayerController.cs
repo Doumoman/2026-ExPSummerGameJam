@@ -31,6 +31,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] SwipeInput _swipe = new SwipeInput();
 
     static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
+    static readonly int DirHash = Animator.StringToHash("Dir");
 
     Vector2Int _cell;
     Vector2Int _slideDir;
@@ -169,7 +170,9 @@ public class PlayerController : MonoBehaviour
             // 루프 안에서 선언해야 콜백이 각 반복의 값을 따로 캡처한다.
             var leaving = (i == 0) ? start : path[i - 1];
             var entering = path[i];
+            var stepDir = entering - leaving;   // 방향 전환 타일로 꺾여도 칸마다 실제 방향이 나온다
 
+            _slide.AppendCallback(() => SetDirection(stepDir));   // 그 칸으로 움직이기 직전에 바꾼다
             _slide.Append(transform.DOMove(ToWorld(entering), _moveDuration).SetEase(Ease.Linear));
             _slide.AppendCallback(() =>
             {
@@ -312,6 +315,21 @@ public class PlayerController : MonoBehaviour
     void SetMoving(bool moving)
     {
         if (_animator != null) _animator.SetBool(IsMovingHash, moving);
+    }
+
+    /// <summary>Animator 의 Dir 파라미터. 0=Up 1=Down 2=Left 3=Right 로 4방향 스테이트를 고른다.</summary>
+    void SetDirection(Vector2Int dir)
+    {
+        if (_animator == null) return;
+
+        int id;
+        if (dir == Vector2Int.up) id = 0;
+        else if (dir == Vector2Int.down) id = 1;
+        else if (dir == Vector2Int.left) id = 2;
+        else if (dir == Vector2Int.right) id = 3;
+        else return;   // 한 칸짜리가 아니면 무시
+
+        _animator.SetInteger(DirHash, id);
     }
 
     void Damage(int amount)
