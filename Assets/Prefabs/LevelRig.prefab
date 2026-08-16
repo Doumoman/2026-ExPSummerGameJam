@@ -674,7 +674,7 @@ Transform:
   m_GameObject: {fileID: 6692109478298692828}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4.5, y: 4.5, z: -10}
+  m_LocalPosition: {x: 3, y: 4.5, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -715,7 +715,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 10.4
+  orthographic size: 8
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
@@ -823,10 +823,19 @@ MonoBehaviour:
   _square: {fileID: 21300000, guid: a39da79fce0fa4b40b1749f225a82625, type: 3}
   _floorLight: {r: 0.3, g: 0.3, b: 0.3, a: 1}
   _floorDark: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+  _floorSprite: {fileID: 0}
+  _floorController: {fileID: 0}
   _wall:
     color: {r: 0.6, g: 0.6, b: 0.65, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -834,6 +843,13 @@ MonoBehaviour:
     color: {r: 0.55, g: 0.42, b: 0.3, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -841,6 +857,13 @@ MonoBehaviour:
     color: {r: 0.6, g: 0.5, b: 0.8, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -848,6 +871,13 @@ MonoBehaviour:
     color: {r: 1, g: 0.55, b: 0.1, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -855,6 +885,13 @@ MonoBehaviour:
     color: {r: 0.35, g: 0.22, b: 0.15, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -862,6 +899,13 @@ MonoBehaviour:
     color: {r: 0.85, g: 0.1, b: 0.15, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -869,6 +913,13 @@ MonoBehaviour:
     color: {r: 0.3, g: 0.12, b: 0.14, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -876,6 +927,13 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: -707859970047543756, guid: a3a393775d143004f84edf21098fe045, type: 3}
     controller: {fileID: 9100000, guid: 25c756825d6b9824fb2f10c7a9e8a1cd, type: 2}
+    offset: {x: 0, y: 0.3}
+    scale: 1
+    baseSprite: {fileID: 8131116456512570694, guid: 8a5931c5b841c1343b3cdce86e4c5e02, type: 3}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -883,6 +941,13 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 3463477195000439037, guid: 9181b1e8cc004a246883839d9ec0860a, type: 3}
     controller: {fileID: 9100000, guid: 0290e90c591c16a468e659f2b3cbc461, type: 2}
+    offset: {x: 0, y: 0.3}
+    scale: 1
+    baseSprite: {fileID: 8131116456512570694, guid: 8a5931c5b841c1343b3cdce86e4c5e02, type: 3}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -890,6 +955,13 @@ MonoBehaviour:
     color: {r: 0.5, g: 0.55, b: 0.6, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -897,6 +969,13 @@ MonoBehaviour:
     color: {r: 0.55, g: 0.8, b: 0.95, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -904,6 +983,13 @@ MonoBehaviour:
     color: {r: 0.25, g: 0.55, b: 0.95, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -911,6 +997,13 @@ MonoBehaviour:
     color: {r: 0.8, g: 0.92, b: 0.98, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -918,6 +1011,13 @@ MonoBehaviour:
     color: {r: 0.72, g: 0.65, b: 0.5, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -925,6 +1025,13 @@ MonoBehaviour:
     color: {r: 0.35, g: 0.75, b: 0.7, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: LD
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -932,6 +1039,13 @@ MonoBehaviour:
     color: {r: 0.4, g: 0.65, b: 0.85, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: LU
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -939,6 +1053,13 @@ MonoBehaviour:
     color: {r: 0.55, g: 0.8, b: 0.4, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: RD
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -946,6 +1067,13 @@ MonoBehaviour:
     color: {r: 0.8, g: 0.7, b: 0.35, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: RU
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
@@ -953,6 +1081,13 @@ MonoBehaviour:
     color: {r: 0.2, g: 0.85, b: 0.3, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
