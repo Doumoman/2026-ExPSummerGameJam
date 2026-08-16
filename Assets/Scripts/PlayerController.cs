@@ -201,6 +201,15 @@ public class PlayerController : MonoBehaviour
         _slide = null;
         SetMoving(false);
 
+        // 불 위에서 멈춰 서면 즉사한다. 스쳐 지나가는 것과 달리 그 위에 그대로 남는 것이라
+        // 1데미지 불이든 즉사 불이든 결과가 같다. 지나가면서 이미 받은 피해와는 별개다.
+        // IsFireTileActive 는 불 타일이 아닌 칸에는 false 라 타입을 따로 가릴 필요가 없다.
+        if (_board.IsFireTileActive(_cell, _turn))
+        {
+            Kill();
+            return;   // 죽은 뒤에 앞칸을 밀거나 부수지 않는다. EndTurn 도 _gameOver 면 어차피 아무것도 안 한다
+        }
+
         // 벽에 부딪혀 멈춘 경우에만 앞칸에 작용한다.
         // 안 미끄러지는 타일에 올라서서 스스로 선 것은 충돌이 아니므로 앞칸을 건드리지 않는다.
         if (_slideBlocked) HitFront(_slideDir);
