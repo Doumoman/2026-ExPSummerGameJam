@@ -287,8 +287,26 @@ public class PlayerController : MonoBehaviour
         _cooldown = 0f;
     }
 
+    /// <summary>
+    /// 레벨 데이터에 다음 씬이 지정돼 있으면 그쪽으로, 없으면 예전처럼 빌드 순서상 다음 씬으로 간다.
+    /// 지정한 씬을 못 불러오는 경우에도 빌드 순서로 넘어간다. 판이 막히는 것보다는
+    /// 경고를 남기고 계속 진행하는 편이 테스트에 낫다.
+    /// </summary>
     void LoadNextStage()
     {
+        var named = _board.NextScene;
+        if (!string.IsNullOrEmpty(named))
+        {
+            if (Application.CanStreamedLevelBeLoaded(named))
+            {
+                SceneManager.LoadScene(named);
+                return;
+            }
+
+            Debug.LogWarning($"레벨 데이터가 가리키는 '{named}' 씬이 Build Settings 에 없다. " +
+                "빌드 순서상 다음 씬으로 대신 넘어간다.", this);
+        }
+
         int current = SceneManager.GetActiveScene().buildIndex;
         if (current < 0)
         {

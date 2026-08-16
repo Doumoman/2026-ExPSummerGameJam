@@ -76,6 +76,9 @@ public class BoardView : MonoBehaviour
 
     public Vector2Int SpawnCell => _level.spawn;
 
+    /// <summary>클리어 시 넘어갈 씬 이름. 레벨 데이터에 지정이 없으면 빈 문자열.</summary>
+    public string NextScene => _level != null ? _level.nextScene : string.Empty;
+
     /// <summary>Awake에서 맵을 만들어 두면 다른 컴포넌트의 Start에서 안전하게 조회할 수 있다.</summary>
     void Awake() => BuildMap();
 

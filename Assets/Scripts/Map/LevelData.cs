@@ -73,5 +73,23 @@ public class LevelData : ScriptableObject
     [Tooltip("도착 지점. 10x10 맵의 우상단 끝은 (9,9)")]
     public Vector2Int goal = new Vector2Int(9, 9);
 
+#if UNITY_EDITOR
+    [Header("클리어 후")]
+    [Tooltip("클리어하면 넘어갈 씬. 비워두면 Build Settings 의 바로 다음 씬으로 넘어간다. " +
+             "여기 넣은 씬도 Build Settings 에 등록되어 있어야 한다")]
+    public UnityEditor.SceneAsset nextSceneAsset;
+#endif
+
+    /// <summary>
+    /// nextSceneAsset 의 이름을 구워둔 것. SceneAsset 은 에디터 전용 타입이라 빌드에 들고 갈 수 없어서
+    /// 이름만 따로 남긴다. OnValidate 가 자동으로 채우므로 직접 건드릴 일은 없다.
+    /// 씬 파일 이름을 바꾸면 참조는 그대로 살아 있고 이 이름만 다음 인스펙터 갱신 때 따라온다.
+    /// </summary>
+    [HideInInspector] public string nextScene;
+
     public GridMap CreateRuntime() => new GridMap(this);
+
+#if UNITY_EDITOR
+    void OnValidate() => nextScene = nextSceneAsset != null ? nextSceneAsset.name : string.Empty;
+#endif
 }
