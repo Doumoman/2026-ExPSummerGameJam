@@ -71,7 +71,8 @@ public class PlayerController : MonoBehaviour
         _turn = 0;
         RefreshHUD();
 
-        // 첫 이동은 1턴이다. 0턴은 아직 아무것도 안 했으므로 녹는 얼음은 없고 표시만 1턴 기준으로 맞춘다.
+        // 첫 이동은 1턴이다. 0턴은 아직 아무것도 안 했으므로 보통은 녹을 얼음이 없다.
+        // 0턴 기준 불 표시는 BuildMap 이 이미 맞춰 놓았고, 1턴으로 뒤집는 건 첫 입력이 맡는다.
         _board.PostMove(0);
     }
 
@@ -104,6 +105,11 @@ public class PlayerController : MonoBehaviour
         if (path.Count == 0) return;
 
         _turn++;
+
+        // 불이 깜빡이는 시점은 턴이 시작되는 바로 여기다. 미끄러지기 전에 갱신해야
+        // 이번 턴에 밟게 될 불의 표시와 OnEnterCell 의 피해 판정이 같은 턴을 본다.
+        _board.RefreshForTurn(_turn);
+
         RefreshHUD();
         StartSlide(path, slideDir, blocked);   // 모서리를 지났다면 입력 방향이 아니라 최종 방향이 들어간다
     }
@@ -214,7 +220,8 @@ public class PlayerController : MonoBehaviour
 
         if (_gameOver) return;
 
-        _board.PostMove(_turn);   // 다음 턴 준비: 얼음 녹이기 + 불 타일 표시 갱신
+        // 얼음만 녹인다. 불 깜빡임은 다음 턴이 실제로 시작될 때까지 미룬다.
+        _board.PostMove(_turn);
 
         if (_cleared) LoadNextStage();
     }
