@@ -69,7 +69,7 @@ public class PlayerController : MonoBehaviour
 
         _hp = _maxHp;
         _turn = 0;
-        RefreshHud();
+        RefreshHUD();
 
         // 첫 이동은 1턴이다. 0턴은 아직 아무것도 안 했으므로 녹는 얼음은 없고 표시만 1턴 기준으로 맞춘다.
         _board.PostMove(0);
@@ -107,7 +107,7 @@ public class PlayerController : MonoBehaviour
             _turn++;
             if (!HitFront(dir)) { _turn--; return; }
 
-            RefreshHud();
+            RefreshHUD();
 
             // 슬라이드가 없어 OnSlideEnd 를 안 거치므로 여기서 턴을 넘긴다.
             // 벽을 밀었다면 그 벽이 멈추는 순간 EndTurn 이 불린다.
@@ -116,7 +116,7 @@ public class PlayerController : MonoBehaviour
         }
 
         _turn++;
-        RefreshHud();
+        RefreshHUD();
         StartSlide(path, slideDir, blocked);   // 전환 타일을 지났다면 입력 방향이 아니라 최종 방향이 들어간다
     }
 
@@ -358,7 +358,7 @@ public class PlayerController : MonoBehaviour
     void Damage(int amount)
     {
         _hp = Mathf.Max(0, _hp - amount);
-        RefreshHud();
+        RefreshHUD();
 
         if (_hp == 0) GameOver();
     }
@@ -366,7 +366,7 @@ public class PlayerController : MonoBehaviour
     void Kill()
     {
         _hp = 0;
-        RefreshHud();
+        RefreshHUD();
         GameOver();
     }
 
@@ -377,7 +377,7 @@ public class PlayerController : MonoBehaviour
         Debug.LogWarning("Game Over");
     }
 
-    void RefreshHud()
+    void RefreshHUD()
     {
         if (_hpText != null) _hpText.text = $"HP {_hp} / {_maxHp}";
     }
