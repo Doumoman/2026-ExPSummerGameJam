@@ -141,8 +141,16 @@ public class GridMap
     /// <summary>밀리는 벽을 없앤다. 불에 타 사라지는 경우에 쓴다.</summary>
     public void RemovePushableWall(Vector2Int c) => _pushableWalls.Remove(c);
 
-    /// <summary>불 타일을 영구히 끈다. 타입은 그대로 두고 활성 턴 정보만 지운다.</summary>
-    public void ExtinguishFireTile(Vector2Int c) => _fireTileOnEven.Remove(c);
+    /// <summary>
+    /// 불 타일을 영구히 끈다. 활성 턴 정보를 지우고 타입을 DousedFire 로 바꾼다.
+    /// 타입이 바뀌므로 RefreshForTurn 의 불 분기에 더는 걸리지 않아 꺼진 표현이 그대로 남는다.
+    /// 불 타일이 아니었으면 아무것도 하지 않는다.
+    /// </summary>
+    public void ExtinguishFireTile(Vector2Int c)
+    {
+        if (!_fireTileOnEven.Remove(c)) return;
+        SetTile(c, TileType.DousedFire);
+    }
 
     /// <summary>런타임에 타일을 바꾼다. 물이 얼어붙는 경우에 쓴다.</summary>
     public void SetTile(Vector2Int c, TileType type)

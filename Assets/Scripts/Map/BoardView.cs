@@ -38,6 +38,10 @@ public class BoardView : MonoBehaviour
     [SerializeField] TileVisual _fireTileOff = new TileVisual { color = new Color(0.35f, 0.22f, 0.15f) };
     [SerializeField] TileVisual _fireTileDeadlyOn = new TileVisual { color = new Color(0.85f, 0.1f, 0.15f) };
     [SerializeField] TileVisual _fireTileDeadlyOff = new TileVisual { color = new Color(0.3f, 0.12f, 0.14f) };
+
+    [Tooltip("밀리는 벽에 닿아 영구히 꺼진 불. 한 번 적용되면 턴이 바뀌어도 다시 그리지 않는다")]
+    [SerializeField] TileVisual _dousedFire = new TileVisual { color = new Color(0.5f, 0.55f, 0.6f) };
+
     [SerializeField] TileVisual _iceWall = new TileVisual { color = new Color(0.55f, 0.8f, 0.95f) };
     [SerializeField] TileVisual _water = new TileVisual { color = new Color(0.25f, 0.55f, 0.95f) };
     [SerializeField] TileVisual _frozen = new TileVisual { color = new Color(0.8f, 0.92f, 0.98f) };
@@ -189,7 +193,10 @@ public class BoardView : MonoBehaviour
         }
     }
 
-    /// <summary>불 타일을 영구히 끈다. 타입은 그대로라 꺼진 색으로 계속 보인다.</summary>
+    /// <summary>
+    /// 불 타일을 영구히 끈다. 타입이 DousedFire 로 바뀌어 RefreshForTurn 이 더는 건드리지 않으므로
+    /// 여기서 한 번 그려주면 그 표현이 끝까지 남는다.
+    /// </summary>
     void ExtinguishFire(Vector2Int cell)
     {
         var type = _map.Get(cell);
@@ -197,8 +204,7 @@ public class BoardView : MonoBehaviour
 
         _map.ExtinguishFireTile(cell);
 
-        if (_markers.TryGetValue(cell, out var marker))
-            Apply(marker, type == TileType.FireTile ? _fireTileOff : _fireTileDeadlyOff, cell);
+        if (_markers.TryGetValue(cell, out var marker)) Apply(marker, _dousedFire, cell);
     }
 
     /// <summary>
@@ -309,6 +315,7 @@ public class BoardView : MonoBehaviour
             case TileType.PushableWall: return _pushableWall;
             case TileType.FireTile: return _fireTileOff;
             case TileType.FireTileDeadly: return _fireTileDeadlyOff;
+            case TileType.DousedFire: return _dousedFire;
             case TileType.IceWall: return _iceWall;
             case TileType.Water: return _water;
             case TileType.Frozen: return _frozen;

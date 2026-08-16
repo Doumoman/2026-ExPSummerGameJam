@@ -26,6 +26,13 @@ public enum TileType
     /// <summary>즉사 불 타일 - 통과 가능. 활성 턴에 밟으면 사망</summary>
     FireTileDeadly,
 
+    /// <summary>
+    /// 꺼진 불 타일 - 통과 가능, 영구히 피해 없음.
+    /// 밀리는 벽이 활성 불 타일에 닿아 꺼트린 결과물이라 LevelData 에서는 찍을 수 없다.
+    /// 1데미지든 즉사든 꺼지고 나면 똑같이 무해해서 한 종류로 합쳤다.
+    /// </summary>
+    DousedFire,
+
     /// <summary>얼음 벽 - meltTurn 이 지나면 녹아서 통과 가능</summary>
     IceWall,
 
