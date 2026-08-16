@@ -117,14 +117,15 @@ public class PlayerController : MonoBehaviour
 
         _turn++;
         RefreshHUD();
-        StartSlide(path, slideDir, blocked);   // 전환 타일을 지났다면 입력 방향이 아니라 최종 방향이 들어간다
+        StartSlide(path, slideDir, blocked);   // 모서리를 지났다면 입력 방향이 아니라 최종 방향이 들어간다
     }
 
     /// <summary>
     /// 막힐 때까지의 경로를 미리 전부 계산한다.
-    /// 방향 전환 타일을 지나면 경로가 꺾이므로 최종 진행 방향을 finalDir 로 함께 돌려준다.
+    /// 모서리 타일을 지나면 경로가 꺾이므로 최종 진행 방향을 finalDir 로 함께 돌려준다.
     /// blocked 는 앞이 막혀서 멈췄는지 - 제 발로 선 것과 구분해야 부딪히지도 않은 벽을 부수지 않는다.
-    /// 맵 경계 밖은 IsWalkable이 false라 보통은 거기서 멈추지만, 전환 타일을 순환으로
+    /// 통행 판정에 CanEnter 를 쓰는 이유는 모서리 타일이 들어오는 방향에 따라 막히기 때문이다.
+    /// 맵 경계 밖은 CanEnter 가 false라 보통은 거기서 멈추지만, 모서리를 순환으로
     /// 배치하면 영원히 돌 수 있어서 (칸, 방향) 조합이 반복되면 멈춘다.
     /// </summary>
     List<Vector2Int> BuildSlidePath(Vector2Int dir, out Vector2Int finalDir, out bool blocked)
@@ -136,7 +137,7 @@ public class PlayerController : MonoBehaviour
         finalDir = dir;
         blocked = true;
 
-        while (_board.IsWalkable(cur + finalDir))
+        while (_board.CanEnter(cur + finalDir, finalDir))
         {
             cur += finalDir;
             path.Add(cur);
@@ -145,7 +146,7 @@ public class PlayerController : MonoBehaviour
             // 이런 타일이 연달아 있으면 자연히 한 칸씩 걷게 되고, 한 칸짜리면 다음 입력부터 다시 미끄러진다.
             if (_board.StopsSlide(cur)) { blocked = false; break; }
 
-            // 방향 전환 타일이면 여기서 꺾는다. 입력 한 번이 한 턴이라 꺾여도 턴은 오르지 않는다.
+            // 모서리 타일이면 여기서 꺾는다. 입력 한 번이 한 턴이라 꺾여도 턴은 오르지 않는다.
             finalDir = _board.Deflect(cur, finalDir);
 
             if (!visited.Add((cur, finalDir))) { blocked = false; break; }
@@ -169,7 +170,7 @@ public class PlayerController : MonoBehaviour
             // 루프 안에서 선언해야 콜백이 각 반복의 값을 따로 캡처한다.
             var leaving = (i == 0) ? start : path[i - 1];
             var entering = path[i];
-            var stepDir = entering - leaving;   // 방향 전환 타일로 꺾여도 칸마다 실제 방향이 나온다
+            var stepDir = entering - leaving;   // 모서리로 꺾여도 칸마다 실제 방향이 나온다
 
             _slide.AppendCallback(() => SetDirection(stepDir));   // 그 칸으로 움직이기 직전에 바꾼다
             _slide.Append(transform.DOMove(ToWorld(entering), _moveDuration).SetEase(Ease.Linear));

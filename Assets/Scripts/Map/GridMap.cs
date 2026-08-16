@@ -46,8 +46,10 @@ public class GridMap
 
         Paint(data.waters, TileType.Water);
         Paint(data.nonSlipTiles, TileType.NonSlip);
-        Paint(data.turnLeftTiles, TileType.TurnLeft);
-        Paint(data.turnRightTiles, TileType.TurnRight);
+        Paint(data.cornerLeftDownTiles, TileType.CornerLeftDown);
+        Paint(data.cornerLeftUpTiles, TileType.CornerLeftUp);
+        Paint(data.cornerRightDownTiles, TileType.CornerRightDown);
+        Paint(data.cornerRightUpTiles, TileType.CornerRightUp);
 
         if (data.pushableWalls != null)
         {
@@ -97,6 +99,52 @@ public class GridMap
             default:
                 return true;
         }
+    }
+
+    /// <summary>
+    /// 모서리 타일이 열려 있는 두 면. 타일 밖을 향하는 벡터로 돌려준다.
+    /// 모서리 타일이 아니면 false.
+    /// </summary>
+    static bool CornerOpenings(TileType type, out Vector2Int a, out Vector2Int b)
+    {
+        switch (type)
+        {
+            case TileType.CornerLeftDown:  a = Vector2Int.left;  b = Vector2Int.down; return true;
+            case TileType.CornerLeftUp:    a = Vector2Int.left;  b = Vector2Int.up;   return true;
+            case TileType.CornerRightDown: a = Vector2Int.right; b = Vector2Int.down; return true;
+            case TileType.CornerRightUp:   a = Vector2Int.right; b = Vector2Int.up;   return true;
+            default: a = b = Vector2Int.zero; return false;
+        }
+    }
+
+    /// <summary>
+    /// dir 방향으로 움직여 이 칸에 들어갈 수 있는지.
+    /// 모서리 타일은 열린 면으로만 들어갈 수 있고, 닫힌 면은 일반 벽과 똑같이 막는다.
+    /// 그 외 타일은 IsWalkable 과 결과가 같다.
+    /// </summary>
+    public bool CanEnter(Vector2Int c, Vector2Int dir)
+    {
+        if (!IsWalkable(c)) return false;
+        if (!CornerOpenings(_tiles[c.x, c.y], out var a, out var b)) return true;
+
+        // 오른쪽으로 움직였으면 왼쪽 면으로 들어온 것이라 진입면은 방향의 반대다.
+        var entry = -dir;
+        return entry == a || entry == b;
+    }
+
+    /// <summary>
+    /// 모서리 타일이면 들어온 면의 반대편 열린 면으로 꺾어 내보낸다. 아니면 들어온 방향 그대로.
+    /// 두 열린 면은 항상 직각이라 들어온 쪽으로 되돌아 나가는 일은 없다.
+    /// </summary>
+    public Vector2Int Deflect(Vector2Int c, Vector2Int dir)
+    {
+        if (!CornerOpenings(Get(c), out var a, out var b)) return dir;
+
+        var entry = -dir;
+        if (entry == a) return b;
+        if (entry == b) return a;
+
+        return dir;   // 닫힌 면으로 들어온 경우. CanEnter 가 먼저 막으므로 여기까지 오지 않는다
     }
 
     /// <summary>얼음 벽이 녹는 턴. 얼음 벽이 아니면 -1.</summary>

@@ -46,8 +46,11 @@ public class BoardView : MonoBehaviour
     [SerializeField] TileVisual _water = new TileVisual { color = new Color(0.25f, 0.55f, 0.95f) };
     [SerializeField] TileVisual _frozen = new TileVisual { color = new Color(0.8f, 0.92f, 0.98f) };
     [SerializeField] TileVisual _nonSlip = new TileVisual { color = new Color(0.72f, 0.65f, 0.5f) };
-    [SerializeField] TileVisual _turnLeft = new TileVisual { color = new Color(0.35f, 0.75f, 0.7f), label = "L" };
-    [SerializeField] TileVisual _turnRight = new TileVisual { color = new Color(0.55f, 0.8f, 0.4f), label = "R" };
+    // 라벨은 열려 있는 두 면. L=왼쪽 R=오른쪽 U=위 D=아래.
+    [SerializeField] TileVisual _cornerLeftDown = new TileVisual { color = new Color(0.35f, 0.75f, 0.7f), label = "LD" };
+    [SerializeField] TileVisual _cornerLeftUp = new TileVisual { color = new Color(0.4f, 0.65f, 0.85f), label = "LU" };
+    [SerializeField] TileVisual _cornerRightDown = new TileVisual { color = new Color(0.55f, 0.8f, 0.4f), label = "RD" };
+    [SerializeField] TileVisual _cornerRightUp = new TileVisual { color = new Color(0.8f, 0.7f, 0.35f), label = "RU" };
     [SerializeField] TileVisual _goal = new TileVisual { color = new Color(0.2f, 0.85f, 0.3f) };
 
     [Header("Layout")]
@@ -69,6 +72,10 @@ public class BoardView : MonoBehaviour
     /// <summary>Awake에서 맵을 만들어 두면 다른 컴포넌트의 Start에서 안전하게 조회할 수 있다.</summary>
     void Awake() => BuildMap();
 
+    /// <summary>
+    /// 방향과 무관하게 이 칸이 통행 가능한 종류인지. 모서리 타일은 방향에 따라 막히므로
+    /// 실제 이동 판정에는 이게 아니라 CanEnter 를 써야 한다.
+    /// </summary>
     public bool IsWalkable(Vector2Int cell) => _map.IsWalkable(cell);
 
     public TileType GetTile(Vector2Int cell) => _map.Get(cell);
@@ -81,23 +88,22 @@ public class BoardView : MonoBehaviour
     public bool HasPushableWall(Vector2Int cell) => _map.HasPushableWall(cell);
 
     /// <summary>
-    /// 방향 전환 타일이면 꺾인 방향을, 아니면 들어온 방향을 그대로 돌려준다.
-    /// 좌회전은 (x,y) → (-y,x), 우회전은 (x,y) → (y,-x). 플레이어와 밀리는 벽이 같이 쓴다.
+    /// dir 방향으로 이 칸에 들어갈 수 있는지. 모서리 타일은 열린 면으로만 들어갈 수 있어
+    /// 통행 판정이 방향에 따라 달라진다. 그 외에는 IsWalkable 과 같다.
+    /// 플레이어와 밀리는 벽이 같이 쓴다.
     /// </summary>
-    public Vector2Int Deflect(Vector2Int cell, Vector2Int dir)
-    {
-        switch (_map.Get(cell))
-        {
-            case TileType.TurnLeft: return new Vector2Int(-dir.y, dir.x);
-            case TileType.TurnRight: return new Vector2Int(dir.y, -dir.x);
-            default: return dir;
-        }
-    }
+    public bool CanEnter(Vector2Int cell, Vector2Int dir) => _map.CanEnter(cell, dir);
+
+    /// <summary>
+    /// 모서리 타일이면 반대편 열린 면으로 꺾인 방향을, 아니면 들어온 방향을 그대로 돌려준다.
+    /// 플레이어와 밀리는 벽이 같이 쓴다.
+    /// </summary>
+    public Vector2Int Deflect(Vector2Int cell, Vector2Int dir) => _map.Deflect(cell, dir);
 
     /// <summary>
     /// 밀리는 벽을 dir 방향으로 막힐 때까지 밀어낸다. 실제로 민 칸수를 돌려준다(0이면 못 밀었다).
     /// 정지 조건은 플레이어와 같다 - 통과 불가 타일/맵 경계에 막히거나, 안 미끄러지는 타일에 올라섰을 때.
-    /// 방향 전환 타일에서는 플레이어와 똑같이 꺾인다.
+    /// 모서리 타일에서는 플레이어와 똑같이 꺾이고, 닫힌 면으로는 못 들어간다.
     /// 부딪혀 멈춘 칸이 깨지는 벽이면 그 벽을 부수고, 밀린 벽은 그 앞에 선다.
     /// 활성 상태인 불 타일에 닿으면 그 칸에서 벽이 타 사라지고 불도 영구히 꺼진다.
     /// 꺼져 있는 불 타일과 물은 그냥 지나간다.
@@ -123,7 +129,7 @@ public class BoardView : MonoBehaviour
         bool blocked = true;
         bool burned = false;   // 활성 불 타일에 닿아 타 사라지는지
 
-        while (_map.IsWalkable(cur + curDir))
+        while (_map.CanEnter(cur + curDir, curDir))
         {
             cur += curDir;
             path.Add(cur);
@@ -135,7 +141,7 @@ public class BoardView : MonoBehaviour
 
             curDir = Deflect(cur, curDir);
 
-            // 전환 타일을 순환으로 배치하면 영원히 돌 수 있어서 같은 (칸, 방향)이 다시 나오면 멈춘다.
+            // 모서리를 순환으로 배치하면 영원히 돌 수 있어서 같은 (칸, 방향)이 다시 나오면 멈춘다.
             if (!visited.Add((cur, curDir))) { blocked = false; break; }
         }
 
@@ -320,8 +326,10 @@ public class BoardView : MonoBehaviour
             case TileType.Water: return _water;
             case TileType.Frozen: return _frozen;
             case TileType.NonSlip: return _nonSlip;
-            case TileType.TurnLeft: return _turnLeft;
-            case TileType.TurnRight: return _turnRight;
+            case TileType.CornerLeftDown: return _cornerLeftDown;
+            case TileType.CornerLeftUp: return _cornerLeftUp;
+            case TileType.CornerRightDown: return _cornerRightDown;
+            case TileType.CornerRightUp: return _cornerRightUp;
             case TileType.Goal: return _goal;
             default: return null;
         }

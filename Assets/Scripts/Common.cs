@@ -5,11 +5,22 @@ public enum TileType
     /// <summary>안 미끄러지는 타일 - 통과 가능. 들어서는 순간 슬라이드가 멈춘다</summary>
     NonSlip,
 
-    /// <summary>좌회전 타일 - 통과 가능. 진행 방향을 왼쪽으로 꺾는다. 턴 소모 없음</summary>
-    TurnLeft,
+    // 모서리 타일 - 열린 두 면으로만 드나들 수 있는 ㄱ자 블럭.
+    // 한쪽 열린 면으로 들어가면 반대쪽 열린 면으로 꺾여 나간다. 턴 소모 없음.
+    // 닫힌 면으로 부딪히면 일반 벽과 똑같이 그 앞에서 멈춘다.
+    // 이름은 열려 있는 두 면을 가리킨다.
 
-    /// <summary>우회전 타일 - 통과 가능. 진행 방향을 오른쪽으로 꺾는다. 턴 소모 없음</summary>
-    TurnRight,
+    /// <summary>왼쪽·아래가 열린 ㄱ자. 왼쪽에서 들어오면 아래로, 아래에서 들어오면 왼쪽으로 나간다</summary>
+    CornerLeftDown,
+
+    /// <summary>왼쪽·위가 열린 모서리</summary>
+    CornerLeftUp,
+
+    /// <summary>오른쪽·아래가 열린 모서리</summary>
+    CornerRightDown,
+
+    /// <summary>오른쪽·위가 열린 모서리</summary>
+    CornerRightUp,
 
     /// <summary>일반 벽(기둥) - 통과 불가. 피해 없음</summary>
     Wall,
