@@ -75,6 +75,12 @@ public class BoardView : MonoBehaviour
     [Header("Tile Visuals")]
     [SerializeField] TileVisual _wall = new TileVisual { color = new Color(0.6f, 0.6f, 0.65f) };
     [SerializeField] TileVisual _breakableWall = new TileVisual { color = new Color(0.55f, 0.42f, 0.3f) };
+
+    [Tooltip("벽이 깨지는 순간의 연출. 얼음의 Ice Melting 과 같은 방식으로 Enter Controller 에 Crash 를 넣는다. " +
+             "재생이 끝나면 벽은 사라진다. 머무를 상태가 없으므로 Controller 는 비워둔다. " +
+             "Enter Controller 를 비우면 연출 없이 즉시 사라진다")]
+    [SerializeField] TileVisual _breakableWallCrash = new TileVisual();
+
     [SerializeField] TileVisual _pushableWall = new TileVisual { color = new Color(0.6f, 0.5f, 0.8f) };
     [SerializeField] TileVisual _fireTileOn = new TileVisual { color = new Color(1f, 0.55f, 0.1f) };
     [SerializeField] TileVisual _fireTileOff = new TileVisual { color = new Color(0.35f, 0.22f, 0.15f) };
@@ -322,7 +328,7 @@ public class BoardView : MonoBehaviour
 
         foreach (var cell in _map.MeltIce(turn))
         {
-            if (_markers.TryGetValue(cell, out var marker)) PlayMelt(marker, cell);
+            if (_markers.TryGetValue(cell, out var marker)) PlayVanish(marker, cell, _iceMelting);
             ResetBase(cell);   // 얼음의 받침이 남으면 안 되므로 빈 칸 바닥으로 되돌린다
             any = true;
         }
@@ -392,35 +398,35 @@ public class BoardView : MonoBehaviour
     }
 
     /// <summary>
-    /// 얼음이 녹는 순간의 연출. 남은 턴이 0이 되어 실제로 녹은 바로 그 시점에 불린다.
+    /// 칸이 사라지는 순간의 연출. 얼음이 녹는 것과 벽이 깨지는 것이 이걸 같이 쓴다.
+    /// 실제로 사라진 바로 그 시점, 즉 지도에서 이미 바닥으로 바뀐 뒤에 불린다.
     ///
     /// 판 위에서는 이미 바닥이라 이 연출이 도는 동안에도 그 칸을 지나갈 수 있다.
-    /// 턴을 붙잡지 않는 것이 중요하다. 녹은 얼음 너머로 그대로 미끄러져 가는 게 이 기믹의 핵심인데
+    /// 턴을 붙잡지 않는 것이 중요하다. 사라진 자리로 그대로 미끄러져 가는 게 이 기믹들의 핵심인데
     /// 연출이 끝나기를 기다리면 그 흐름이 끊긴다. 그림만 뒤늦게 따라오는 셈이다.
     ///
-    /// 라벨은 Apply 가 알아서 감춘다. Ice Melting 의 Label 이 비어 있으면 남은 턴 숫자가 같이 사라진다.
+    /// 받침은 부르는 쪽이 ResetBase 로 따로 되돌리므로 여기서는 위 레이어만 본다.
     /// </summary>
-    void PlayMelt(Marker marker, Vector2Int cell)
+    void PlayVanish(Marker marker, Vector2Int cell, TileVisual visual)
     {
         // 남은 턴이 0인데 숫자가 남아 있으면 아직 막고 있는 것처럼 보인다. 연출보다 먼저 치운다.
         if (marker.Label != null) marker.Label.gameObject.SetActive(false);
 
-        // 받침은 MeltIce 가 ResetBase 로 따로 되돌리므로 여기서는 위 레이어만 본다.
-        marker.LastVisual = _iceMelting;
-        if (_iceMelting.sprite != null) marker.Renderer.sprite = _iceMelting.sprite;
-        marker.Renderer.color = _iceMelting.color;
-        Place(marker, cell, _iceMelting.offset, _markerScale * _iceMelting.scale);
+        marker.LastVisual = visual;
+        if (visual.sprite != null) marker.Renderer.sprite = visual.sprite;
+        marker.Renderer.color = visual.color;
+        Place(marker, cell, visual.offset, _markerScale * visual.scale);
 
         // 불의 켜짐/꺼짐 전환과 같은 방식으로 재생하되, 끝나면 정상 상태로 가는 대신 사라진다.
-        // 녹은 자리는 바닥이 되므로 머무를 상태가 없다.
+        // 사라진 자리는 바닥이 되므로 머무를 상태가 없다.
         // Enter Controller 를 비워두면 재생 없이 즉시 사라져 예전 동작과 같다.
-        PlayTransition(marker, _iceMelting, () => HideMarker(marker));
+        PlayTransition(marker, visual, () => HideMarker(marker));
     }
 
     /// <summary>
     /// 컨트롤러에 물린 클립 중 가장 긴 것의 길이. 연출이 끝나는 시점을 재는 데 쓴다.
     /// 클립을 다시 타이밍 잡아도 따라오므로 길이를 손으로 맞춰둘 필요가 없다.
-    /// 클립이 여러 개라 자동 계산이 어긋나면 Melt Duration 에 직접 넣으면 된다.
+    /// 클립이 여러 개라 자동 계산이 어긋나면 Enter Duration 에 직접 넣으면 된다.
     /// </summary>
     static float ClipLength(RuntimeAnimatorController controller)
     {
@@ -449,7 +455,9 @@ public class BoardView : MonoBehaviour
         if (_map.Get(cell) != TileType.BreakableWall) return false;
 
         _map.SetTile(cell, TileType.Floor);
-        if (_markers.TryGetValue(cell, out var marker)) HideMarker(marker);
+
+        // 얼음이 녹는 것과 같다. 지도에서는 이미 바닥이라 깨지는 연출이 도는 동안에도 지나갈 수 있다.
+        if (_markers.TryGetValue(cell, out var marker)) PlayVanish(marker, cell, _breakableWallCrash);
 
         ResetBase(cell);   // 벽의 받침이 남으면 안 되므로 빈 칸 바닥으로 되돌린다
         return true;

@@ -1492,6 +1492,22 @@ MonoBehaviour:
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
+  _breakableWallCrash:
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: -8320547613712930583, guid: 273117f6b9118854c82365a39f73f0fa, type: 3}
+    controller: {fileID: 0}
+    enterController: {fileID: 9100000, guid: 7f2be686323896a4e8a56ac27f1a76fe, type: 2}
+    enterDuration: 0
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
+    label: 
+    labelColor: {r: 1, g: 1, b: 1, a: 1}
+    labelSize: 4
   _pushableWall:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 5236466609331540025, guid: e579a1892e9ca8649945c791eba9ac53, type: 3}
@@ -1692,7 +1708,7 @@ MonoBehaviour:
     enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
-    baseSprite: {fileID: 0}
+    baseSprite: {fileID: 5251734906795025119, guid: b69d26fa1fee4db43b837be75a5ee079, type: 3}
     baseColor: {r: 1, g: 1, b: 1, a: 1}
     baseController: {fileID: 0}
     baseOffset: {x: 0, y: 0}
