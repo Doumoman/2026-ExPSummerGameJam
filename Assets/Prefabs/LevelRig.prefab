@@ -1455,6 +1455,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoardView
   _level: {fileID: 11400000, guid: 60d8e01c7d21e91488f4f90e6add6eb6, type: 2}
   _square: {fileID: 21300000, guid: a39da79fce0fa4b40b1749f225a82625, type: 3}
+  _boardBackground: {fileID: -7443756053782179069, guid: adc8cc2f2c10df74f88e174363cd8a43, type: 3}
   _floorLight: {r: 0.3, g: 0.3, b: 0.3, a: 1}
   _floorDark: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   _floorSprite: {fileID: 0}
