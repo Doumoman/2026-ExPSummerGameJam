@@ -10,35 +10,40 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 81cd17b9193086144811cf5dffefe8c3, type: 3}
-  m_Name: Level05
+  m_Name: Level10008
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
   width: 7
   height: 10
-  spawn: {x: 5, y: 0}
+  spawn: {x: 0, y: 0}
   walls:
-  - {x: 3, y: 7}
-  - {x: 4, y: 7}
+  - {x: 1, y: 9}
+  - {x: 2, y: 9}
+  - {x: 3, y: 9}
+  - {x: 4, y: 9}
+  - {x: 5, y: 9}
+  - {x: 6, y: 9}
+  - {x: 0, y: 7}
+  breakableWalls:
+  - {x: 6, y: 8}
   - {x: 5, y: 7}
-  - {x: 6, y: 7}
-  - {x: 3, y: 6}
+  - {x: 4, y: 6}
   - {x: 3, y: 5}
-  - {x: 5, y: 5}
-  - {x: 3, y: 4}
-  - {x: 6, y: 2}
-  - {x: 0, y: 0}
-  breakableWalls: []
+  - {x: 2, y: 4}
+  - {x: 6, y: 4}
+  - {x: 1, y: 3}
+  - {x: 5, y: 3}
+  - {x: 0, y: 2}
+  - {x: 4, y: 2}
+  - {x: 3, y: 1}
+  - {x: 2, y: 0}
   pushableWalls: []
   fireTiles: []
-  deadlyFireTiles:
-  - cell: {x: 0, y: 3}
-    activeOnEvenTurn: 0
-  - cell: {x: 4, y: 0}
-    activeOnEvenTurn: 0
-  iceWalls:
-  - cell: {x: 1, y: 3}
-    meltTurn: 5
+  deadlyFireTiles: []
+  iceWalls: []
   waters: []
   nonSlipTiles: []
-  turnLeftTiles: []
-  turnRightTiles: []
-  goal: {x: 2, y: 9}
+  cornerLeftDownTiles: []
+  cornerLeftUpTiles: []
+  cornerRightDownTiles: []
+  cornerRightUpTiles: []
+  goal: {x: 0, y: 9}
