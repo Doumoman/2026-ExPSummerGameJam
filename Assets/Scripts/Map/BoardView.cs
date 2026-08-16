@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -32,6 +32,20 @@ public class BoardView : MonoBehaviour
         /// 옮겨갈 목표 칸에도 이 값을 다시 더해야 오프셋이 유지된다.
         /// </summary>
         public Vector2 Offset;
+
+        /// <summary>
+        /// 직전에 적용된 표현. 상태가 실제로 바뀌었는지를 이걸로 판단해 전환 애니메이션을 재생할지 정한다.
+        /// 컨트롤러가 같은지로 보면 안 된다. 켜짐과 상시가 같은 루프를 쓰는 것처럼
+        /// 서로 다른 상태가 같은 정상 컨트롤러를 공유할 수 있다.
+        /// </summary>
+        public TileVisual LastVisual;
+
+        /// <summary>
+        /// 전환 애니메이션이 끝나면 정상 상태 컨트롤러로 넘기는 예약.
+        /// 그 사이에 상태가 또 바뀌면 취소해야 한다. 안 그러면 뒤늦게 도착해서
+        /// 새로 시작한 전환 애니메이션을 엉뚱한 컨트롤러로 덮어쓴다.
+        /// </summary>
+        public Tween EnterHandoff;
     }
 
     [Header("Level")]
@@ -42,10 +56,16 @@ public class BoardView : MonoBehaviour
     [SerializeField] Sprite _square;
 
     [Header("Floor")]
+    [Tooltip("판 전체를 덮는 배경 그림 한 장. 넣으면 칸마다 바닥을 찍지 않고 이 한 장만 깔리므로 " +
+             "체커보드와 아래의 Floor Sprite 는 무시된다. 받침(Base Sprite)을 지정한 칸만 그 위에 얹힌다. " +
+             "맵 크기(칸 수)에 맞춰 늘려 붙이므로 PPU 가 달라도 격자와는 안 어긋난다")]
+    [SerializeField] Sprite _boardBackground;
+
     [SerializeField] Color _floorLight = new Color(0.3f, 0.3f, 0.3f);
     [SerializeField] Color _floorDark = new Color(0.2f, 0.2f, 0.2f);
 
-    [Tooltip("받침을 따로 지정하지 않은 칸에 깔리는 바닥 그림. 비우면 예전처럼 Square 에 체커보드 색만 칠한다. " +
+    [Tooltip("칸마다 깔리는 바닥 그림. Board Background 를 넣었으면 쓰이지 않는다. " +
+             "비우면 예전처럼 Square 에 체커보드 색만 칠한다. " +
              "넣으면 그 위에 체커보드 색이 곱해지므로, 원본 색 그대로 쓰려면 위의 색 둘을 흰색으로 둔다")]
     [SerializeField] Sprite _floorSprite;
 
@@ -71,6 +91,11 @@ public class BoardView : MonoBehaviour
     [SerializeField] TileVisual _dousedFire = new TileVisual { color = new Color(0.5f, 0.55f, 0.6f) };
 
     [SerializeField] TileVisual _iceWall = new TileVisual { color = new Color(0.55f, 0.8f, 0.95f) };
+
+    [Tooltip("얼음이 녹는 순간의 연출. 불의 켜짐/꺼짐과 같은 방식으로 Enter Controller 에 Melting 을 넣는다. " +
+             "재생이 끝나면 얼음은 사라진다. 머무를 상태가 없으므로 Controller 는 비워둔다. " +
+             "Enter Controller 를 비우면 연출 없이 즉시 사라진다")]
+    [SerializeField] TileVisual _iceMelting = new TileVisual();
     [SerializeField] TileVisual _water = new TileVisual { color = new Color(0.25f, 0.55f, 0.95f) };
     [SerializeField] TileVisual _frozen = new TileVisual { color = new Color(0.8f, 0.92f, 0.98f) };
     [SerializeField] TileVisual _nonSlip = new TileVisual { color = new Color(0.72f, 0.65f, 0.5f) };
@@ -89,6 +114,14 @@ public class BoardView : MonoBehaviour
 
     /// <summary>직전에 표시를 맞춘 턴. 홀짝이 실제로 뒤집혔는지 보려고 들고 있는다. -1 이면 아직 없음.</summary>
     int _lastRefreshTurn = -1;
+
+    /// <summary>
+    /// 전환 애니메이션을 재생하는 대신 마지막 프레임으로 바로 밀어 놓을지.
+    /// 판을 처음 그릴 때만 켠다. Bigger/Smaller 는 "턴이 바뀌어 상태가 뒤집혔다"는 신호인데
+    /// 시작하자마자 한 번씩 돌면 아무 수도 두지 않았는데 판이 방금 바뀐 것처럼 읽힌다.
+    /// 특히 꺼져 있어야 할 불이 Smaller 를 재생하면 없던 불이 나타났다 꺼지는 것처럼 보인다.
+    /// </summary>
+    bool _settleAnimations;
 
     readonly Dictionary<Vector2Int, Marker> _markers = new Dictionary<Vector2Int, Marker>();
 
@@ -256,7 +289,7 @@ public class BoardView : MonoBehaviour
 
         if (_pushableMarkers.TryGetValue(cell, out var marker))
         {
-            marker.Renderer.gameObject.SetActive(false);
+            HideMarker(marker);
             _pushableMarkers.Remove(cell);
         }
     }
@@ -289,7 +322,7 @@ public class BoardView : MonoBehaviour
 
         foreach (var cell in _map.MeltIce(turn))
         {
-            if (_markers.TryGetValue(cell, out var marker)) marker.Renderer.gameObject.SetActive(false);
+            if (_markers.TryGetValue(cell, out var marker)) PlayMelt(marker, cell);
             ResetBase(cell);   // 얼음의 받침이 남으면 안 되므로 빈 칸 바닥으로 되돌린다
             any = true;
         }
@@ -306,6 +339,11 @@ public class BoardView : MonoBehaviour
     /// </summary>
     public void RefreshForTurn(int turn)
     {
+        // 라벨의 남은 턴 계산이 이 값을 보므로 마커를 다시 그리기 전에 갱신해 둔다.
+        // 깜빡임 소리는 직전 턴과 비교해야 하므로 옛 값은 따로 챙긴다.
+        int previous = _lastRefreshTurn;
+        _lastRefreshTurn = turn;
+
         bool hasBlinking = false;
 
         foreach (var pair in _markers)
@@ -327,16 +365,72 @@ public class BoardView : MonoBehaviour
                     Apply(marker, always ? _fireTileDeadlyAlways : (active ? _fireTileDeadlyOn : _fireTileDeadlyOff), cell);
                     if (!always) hasBlinking = true;
                     break;
+
+                // 남은 턴 라벨이 이번 턴 기준으로 다시 세어지도록 그대로 한 번 더 칠한다.
+                // 그림은 그대로라 {r} 을 안 쓰는 얼음이면 눈에 보이는 변화가 없다.
+                case TileType.IceWall:
+                    Apply(marker, _iceWall, cell);
+                    break;
             }
         }
 
         // 홀짝이 실제로 뒤집힌 턴에만, 맵 전체에 대해 한 번만 낸다.
         // 불 하나마다 내면 불이 열 개인 판에서 열 개가 겹쳐 울린다.
         // 상시 활성 불만 있는 판은 깜빡이지 않으므로 소리도 없다.
-        if (hasBlinking && _lastRefreshTurn >= 0 && (turn % 2) != (_lastRefreshTurn % 2))
+        if (hasBlinking && previous >= 0 && (turn % 2) != (previous % 2))
             Play(Sfx.FireToggle);
+    }
 
-        _lastRefreshTurn = turn;
+    /// <summary>
+    /// 마커를 감춘다. 라벨은 마커의 자식이 아니라 칸에 붙어 있어서 따로 꺼야 한다.
+    /// 안 그러면 얼음이 녹은 자리에 남은 턴 숫자만 덩그러니 떠 있는다.
+    /// </summary>
+    static void HideMarker(Marker marker)
+    {
+        marker.Renderer.gameObject.SetActive(false);
+        if (marker.Label != null) marker.Label.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// 얼음이 녹는 순간의 연출. 남은 턴이 0이 되어 실제로 녹은 바로 그 시점에 불린다.
+    ///
+    /// 판 위에서는 이미 바닥이라 이 연출이 도는 동안에도 그 칸을 지나갈 수 있다.
+    /// 턴을 붙잡지 않는 것이 중요하다. 녹은 얼음 너머로 그대로 미끄러져 가는 게 이 기믹의 핵심인데
+    /// 연출이 끝나기를 기다리면 그 흐름이 끊긴다. 그림만 뒤늦게 따라오는 셈이다.
+    ///
+    /// 라벨은 Apply 가 알아서 감춘다. Ice Melting 의 Label 이 비어 있으면 남은 턴 숫자가 같이 사라진다.
+    /// </summary>
+    void PlayMelt(Marker marker, Vector2Int cell)
+    {
+        // 남은 턴이 0인데 숫자가 남아 있으면 아직 막고 있는 것처럼 보인다. 연출보다 먼저 치운다.
+        if (marker.Label != null) marker.Label.gameObject.SetActive(false);
+
+        // 받침은 MeltIce 가 ResetBase 로 따로 되돌리므로 여기서는 위 레이어만 본다.
+        marker.LastVisual = _iceMelting;
+        if (_iceMelting.sprite != null) marker.Renderer.sprite = _iceMelting.sprite;
+        marker.Renderer.color = _iceMelting.color;
+        Place(marker, cell, _iceMelting.offset, _markerScale * _iceMelting.scale);
+
+        // 불의 켜짐/꺼짐 전환과 같은 방식으로 재생하되, 끝나면 정상 상태로 가는 대신 사라진다.
+        // 녹은 자리는 바닥이 되므로 머무를 상태가 없다.
+        // Enter Controller 를 비워두면 재생 없이 즉시 사라져 예전 동작과 같다.
+        PlayTransition(marker, _iceMelting, () => HideMarker(marker));
+    }
+
+    /// <summary>
+    /// 컨트롤러에 물린 클립 중 가장 긴 것의 길이. 연출이 끝나는 시점을 재는 데 쓴다.
+    /// 클립을 다시 타이밍 잡아도 따라오므로 길이를 손으로 맞춰둘 필요가 없다.
+    /// 클립이 여러 개라 자동 계산이 어긋나면 Melt Duration 에 직접 넣으면 된다.
+    /// </summary>
+    static float ClipLength(RuntimeAnimatorController controller)
+    {
+        if (controller == null) return 0f;
+
+        float longest = 0f;
+        foreach (var clip in controller.animationClips)
+            if (clip != null) longest = Mathf.Max(longest, clip.length);
+
+        return longest;
     }
 
     /// <summary>SoundManager 가 아직 없어도 터지지 않게 감싼다.</summary>
@@ -355,7 +449,7 @@ public class BoardView : MonoBehaviour
         if (_map.Get(cell) != TileType.BreakableWall) return false;
 
         _map.SetTile(cell, TileType.Floor);
-        if (_markers.TryGetValue(cell, out var marker)) marker.Renderer.gameObject.SetActive(false);
+        if (_markers.TryGetValue(cell, out var marker)) HideMarker(marker);
 
         ResetBase(cell);   // 벽의 받침이 남으면 안 되므로 빈 칸 바닥으로 되돌린다
         return true;
@@ -393,6 +487,14 @@ public class BoardView : MonoBehaviour
         ClearBoard();
         var container = CreateContainer();
 
+        // 판을 짓는 동안에는 전환 애니메이션을 재생하지 않는다. 마커를 처음 놓는 것도
+        // "그 상태로 바뀌는" 것이라 그냥 두면 꺼져 있어야 할 불이 Smaller 를 한 번 재생해서
+        // 씬을 열자마자 불이 스쳐 보인다. 마지막 RefreshForTurn 까지 통째로 덮어야 한다.
+        _settleAnimations = true;
+
+        // 칸 바닥보다 먼저 깔아야 아래에 놓인다. 없으면 예전처럼 칸마다 체커보드를 찍는다.
+        if (_boardBackground != null) SpawnBoardBackground(container);
+
         for (int y = 0; y < _map.Height; y++)
         {
             for (int x = 0; x < _map.Width; x++)
@@ -414,6 +516,9 @@ public class BoardView : MonoBehaviour
         // 첫 이동인 1턴 기준으로 미리 켜 두면 1턴이 시작될 때 바뀔 게 없어서 첫 턴만 깜빡임이 빠진다.
         // 매 턴 "직전 턴 상태를 보고 있다가 턴이 시작되면서 뒤집힌다"는 규칙을 1턴에도 그대로 맞춘 것이다.
         RefreshForTurn(0);
+
+        // 여기까지가 "이미 그 상태로 놓여 있는" 판이다. 이후 상태 변화부터 전환이 재생된다.
+        _settleAnimations = false;
     }
 
     TileVisual VisualOf(TileType type)
@@ -447,16 +552,21 @@ public class BoardView : MonoBehaviour
     {
         if (marker.Base != null) ApplyBase(marker.Base, visual, cell);
 
-        // 바닥만 넣고 위를 비우면 위 레이어는 그리지 않는다. 장작만 남은 꺼진 불이 이 경우다.
-        // 바닥도 안 넣었으면 예전처럼 Square 에 색을 칠한 사각형이 그려진다.
-        marker.Renderer.enabled = visual.sprite != null || visual.baseSprite == null;
+        // 같은 표현을 다시 칠하는 것인지. 전환 애니메이션은 실제로 상태가 바뀔 때만 재생한다.
+        bool changed = marker.LastVisual != visual;
+        marker.LastVisual = visual;
 
-        marker.Renderer.sprite = visual.sprite != null ? visual.sprite : _square;
+        // 컨트롤러가 매 프레임 m_Sprite 를 덮어쓰므로 정지 스프라이트를 굳이 밀어 넣지 않는다.
+        // Square 로 되돌리면 Animator 가 첫 프레임을 쓰기 전 한 프레임 동안 흰 사각형이 번쩍인다.
+        // 그냥 두면 직전 상태의 마지막 프레임에서 자연스럽게 이어진다.
+        if (visual.sprite != null) marker.Renderer.sprite = visual.sprite;
+        else if (visual.controller == null && visual.enterController == null) marker.Renderer.sprite = _square;
+
         marker.Renderer.color = visual.color;
 
         Place(marker, cell, visual.offset, _markerScale * visual.scale);
 
-        ApplyAnimation(marker, visual.controller);
+        ApplyStateAnimation(marker, visual, changed);
 
         if (string.IsNullOrEmpty(visual.label))
         {
@@ -464,7 +574,7 @@ public class BoardView : MonoBehaviour
             return;
         }
 
-        if (marker.Label == null) marker.Label = CreateLabel(marker.Renderer.transform);
+        if (marker.Label == null) marker.Label = CreateLabel(marker.Renderer.transform.parent, cell);
 
         marker.Label.gameObject.SetActive(true);
         marker.Label.text = ResolveLabel(visual.label, cell);
@@ -498,27 +608,111 @@ public class BoardView : MonoBehaviour
         marker.Animator.enabled = controller != null;
     }
 
-    /// <summary>얼음 벽은 {n} 을 녹는 턴 숫자로 바꿔준다.</summary>
-    string ResolveLabel(string label, Vector2Int cell)
+    /// <summary>
+    /// 위 레이어의 애니메이션을 상태에 맞춘다.
+    /// 전환 애니메이션(Enter Controller)이 있으면 그것부터 한 번 재생하고,
+    /// 끝나는 순간 정상 상태 컨트롤러로 넘긴다. 불이 커졌다가 일렁이기 시작하는 흐름이 이것이다.
+    ///
+    /// changed 가 false면 아무것도 되감지 않는다. 같은 상태가 이어지는 동안 매 턴 점화를 반복하면 안 된다.
+    /// </summary>
+    void ApplyStateAnimation(Marker marker, TileVisual visual, bool changed)
     {
-        if (!label.Contains("{n}")) return label;
+        // 상태가 그대로면 정상 컨트롤러만 확인한다. 전환이 도는 중이었다면 그 인계 예약이 그대로 살아 있다.
+        if (!changed)
+        {
+            if (marker.EnterHandoff == null) SettleTo(marker, visual);
+            return;
+        }
 
-        int melt = _map.GetMeltTurn(cell);
-        return label.Replace("{n}", melt >= 0 ? melt.ToString() : "");
+        PlayTransition(marker, visual, () => SettleTo(marker, visual));
     }
 
-    TextMeshPro CreateLabel(Transform parent)
+    /// <summary>
+    /// Enter Controller 를 한 번 재생하고 끝나는 순간 done 을 부른다.
+    /// 불이 켜지고 꺼지는 전환과 얼음이 녹는 연출이 이걸 같이 쓴다.
+    /// 끝난 뒤에 무엇을 할지만 다르다 - 불은 정상 상태로 넘어가고 얼음은 사라진다.
+    ///
+    /// 전환이 없거나 판을 처음 그리는 중이면 재생 없이 done 을 즉시 부른다.
+    /// 그래서 연출을 안 넣어도 결과는 같고, 넣으면 그만큼 늦게 도착할 뿐이다.
+    /// </summary>
+    void PlayTransition(Marker marker, TileVisual visual, System.Action done)
     {
-        var go = new GameObject("Label");
+        // 이전 상태가 남긴 예약을 취소한다. 뒤늦게 도착하면 방금 시작한 전환을 덮어쓴다.
+        marker.EnterHandoff?.Kill();
+        marker.EnterHandoff = null;
+
+        if (visual.enterController == null || _settleAnimations)
+        {
+            done();
+            return;
+        }
+
+        // 전환이 도는 동안에는 그 클립이 그릴 거리를 대주므로 정지 스프라이트가 없어도 켜 둔다.
+        marker.Renderer.enabled = true;
+        ApplyAnimation(marker, visual.enterController);
+
+        float duration = visual.enterDuration > 0f ? visual.enterDuration : ClipLength(visual.enterController);
+
+        marker.EnterHandoff = DOVirtual.DelayedCall(duration, () =>
+        {
+            marker.EnterHandoff = null;
+
+            // 도는 사이에 판을 다시 구웠으면 렌더러가 이미 파괴돼 있다.
+            if (marker.Renderer != null) done();
+        });
+    }
+
+    /// <summary>
+    /// 전환이 끝난 뒤(혹은 전환 없이) 머무를 정상 상태로 맞춘다.
+    /// 보여줄 것이 아무것도 없으면 위 레이어를 감춘다. 꺼진 불이 Smaller 마지막 프레임에
+    /// 얼어붙은 채 남지 않고 사라지는 것이 여기서 갈린다.
+    /// </summary>
+    void SettleTo(Marker marker, TileVisual visual)
+    {
+        marker.Renderer.enabled =
+            visual.sprite != null || visual.controller != null || visual.baseSprite == null;
+
+        ApplyAnimation(marker, visual.controller);
+    }
+
+    /// <summary>
+    /// 얼음 벽 라벨의 치환자를 채운다.
+    /// {r} = 몇 턴 뒤에 녹는지, {n} = 녹는 턴 번호 자체.
+    /// 보통은 {r} 을 쓴다. {n} 은 지금이 몇 턴인지 플레이어가 따로 세고 있어야 뜻이 통한다.
+    /// 얼음 벽이 아닌 칸에서는 둘 다 빈 문자열이 된다.
+    /// </summary>
+    string ResolveLabel(string label, Vector2Int cell)
+    {
+        if (!label.Contains("{")) return label;
+
+        int melt = _map.GetMeltTurn(cell);
+        if (melt < 0) return label.Replace("{r}", "").Replace("{n}", "");
+
+        // 지금 시작한 턴 기준으로 남은 턴. meltTurn 이 3이고 1턴이면 2턴 뒤에 녹는다.
+        // 첫 표시는 아직 RefreshForTurn 이 안 불린 시점이라 _lastRefreshTurn 이 -1 이므로 0턴으로 본다.
+        // 0 밑으로는 안 내려간다. 0이 보인다면 이번 턴에 녹는다는 뜻이고 실제로 곧 사라진다.
+        int left = Mathf.Max(0, melt - Mathf.Max(0, _lastRefreshTurn));
+
+        return label.Replace("{r}", left.ToString()).Replace("{n}", melt.ToString());
+    }
+
+    /// <summary>
+    /// 라벨은 마커의 자식이 아니라 컨테이너 밑에 칸 좌표로 직접 붙인다.
+    /// 마커에 매달면 그림을 맞추려고 넣은 오프셋과 배율을 글씨까지 따라가서 칸 정중앙을 벗어난다.
+    /// 대신 마커를 감출 때 딸려 꺼지지 않으므로 HideMarker 에서 따로 꺼야 한다.
+    /// </summary>
+    TextMeshPro CreateLabel(Transform parent, Vector2Int cell)
+    {
+        var go = new GameObject($"Label_{cell.x}_{cell.y}");
         go.hideFlags = HideFlags.DontSaveInEditor;
         go.transform.SetParent(parent, false);
-        go.transform.localPosition = Vector3.zero;
+        go.transform.localPosition = new Vector3(cell.x, cell.y, 0f);
 
         var tmp = go.AddComponent<TextMeshPro>();
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.textWrappingMode = TextWrappingModes.NoWrap;
         tmp.rectTransform.sizeDelta = new Vector2(1f, 1f);
-        tmp.GetComponent<MeshRenderer>().sortingOrder = 2;   // 마커(1) 위
+        tmp.GetComponent<MeshRenderer>().sortingOrder = 100;   // 마커(1) 위
         return tmp;
     }
 
@@ -551,13 +745,36 @@ public class BoardView : MonoBehaviour
     }
 
     /// <summary>
+    /// 판 전체를 덮는 배경을 한 장 깐다. 칸마다 바닥을 찍는 것을 대신한다.
+    /// 칸은 정수 좌표에 중심이 오므로 판은 -0.5 부터 (칸 수 - 0.5) 까지 걸쳐 있고,
+    /// 그래서 한가운데는 (칸 수 - 1) / 2 다. 7x10 이면 (3, 4.5).
+    /// 스프라이트가 실제로 몇 유닛인지 재서 맵 크기에 맞추므로 PPU 가 어긋나도 격자와는 안 어긋난다.
+    /// 대신 가로세로 비율이 안 맞으면 그만큼 늘어나니 원본을 칸 비율대로 그려야 한다.
+    /// </summary>
+    void SpawnBoardBackground(Transform parent)
+    {
+        var size = _boardBackground.bounds.size;
+        if (size.x <= 0f || size.y <= 0f) return;
+
+        var go = new GameObject("Background");
+        go.hideFlags = HideFlags.DontSaveInEditor;
+        go.transform.SetParent(parent, false);
+        go.transform.localPosition = new Vector3((_map.Width - 1) * 0.5f, (_map.Height - 1) * 0.5f, 0f);
+        go.transform.localScale = new Vector3(_map.Width / size.x, _map.Height / size.y, 1f);
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = _boardBackground;
+        sr.sortingOrder = -1;   // 칸 바닥(0)보다 뒤
+    }
+
+    /// <summary>
     /// 칸 밑에 깔리는 바닥을 만든다. 마커와 달리 빈 칸을 포함해 모든 칸에 하나씩 생긴다.
     /// 칸 전체를 채워야 하므로 크기는 마커와 달리 항상 1이다.
     /// 처음에는 빈 칸 바닥으로 깔아두고, 위에 마커가 올라오면 그때 그 타일의 받침으로 덮인다.
     /// </summary>
     void SpawnBase(Transform parent, Vector2Int cell)
     {
-        var sr = SpawnSprite(parent, $"Cell_{cell.x}_{cell.y}", cell, 0);
+        var sr = SpawnSprite(parent, $"Cell_{cell.x}_{cell.y}", cell, 99 - cell.y);
         var marker = new Marker { Renderer = sr };
         _bases[cell] = marker;
 
@@ -606,6 +823,15 @@ public class BoardView : MonoBehaviour
     /// </summary>
     void ApplyFloorBase(Marker marker, Vector2Int cell)
     {
+        // 판 배경이 깔려 있으면 칸마다 바닥을 또 그리지 않는다. 배경이 그대로 비쳐 보이고,
+        // 받침을 지정한 칸만 ApplyBase 를 타서 그 위에 얹힌다.
+        if (_boardBackground != null)
+        {
+            marker.Renderer.enabled = false;
+            ApplyAnimation(marker, null);
+            return;
+        }
+
         marker.Renderer.enabled = true;
         marker.Renderer.sprite = _floorSprite != null ? _floorSprite : _square;
         marker.Renderer.color = (cell.x + cell.y) % 2 == 0 ? _floorDark : _floorLight;
@@ -627,7 +853,7 @@ public class BoardView : MonoBehaviour
 
     void SpawnMarker(Transform parent, Vector2Int cell, TileType type)
     {
-        var sr = SpawnSprite(parent, $"{type}_{cell.x}_{cell.y}", cell, 1);
+        var sr = SpawnSprite(parent, $"{type}_{cell.x}_{cell.y}", cell, 100 - cell.y);
 
         // 이 칸의 바닥을 물려 두면 이후 Apply 한 번으로 두 레이어가 같이 칠해진다.
         _bases.TryGetValue(cell, out var floor);
@@ -644,7 +870,7 @@ public class BoardView : MonoBehaviour
     /// </summary>
     void SpawnPushableMarker(Transform parent, Vector2Int cell)
     {
-        var sr = SpawnSprite(parent, $"PushableWall_{cell.x}_{cell.y}", cell, 3);
+        var sr = SpawnSprite(parent, $"PushableWall_{cell.x}_{cell.y}", cell, 101);
         var marker = new Marker { Renderer = sr };
         _pushableMarkers[cell] = marker;
 

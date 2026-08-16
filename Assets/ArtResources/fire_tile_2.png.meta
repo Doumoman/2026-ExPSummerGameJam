@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 5ab1d4b8bc7e1bc48adde78f905a0d11
+guid: 973d905b7cdefe84da97ff93b63ca6b2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6286989497870943507
-    second: melting_wall_0
+      213: -2147479005462490478
+    second: fire_tile_2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: melting_wall_0
+      name: fire_tile_2_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 130
-        height: 180
+        x: 1
+        y: 4
+        width: 125
+        height: 116
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: dea7ac09c5020c8a0800000000000000
-      internalID: -6286989497870943507
+      spriteID: 2929ccce83f9232e0800000000000000
+      internalID: -2147479005462490478
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      melting_wall_0: -6286989497870943507
+      fire_tile_2_0: -2147479005462490478
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

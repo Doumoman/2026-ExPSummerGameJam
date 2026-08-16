@@ -12,18 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81cd17b9193086144811cf5dffefe8c3, type: 3}
   m_Name: Test
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
-  width: 6
+  width: 7
   height: 10
   spawn: {x: 0, y: 0}
-  walls: []
+  walls:
+  - {x: 0, y: 3}
   breakableWalls: []
-  pushableWalls: []
+  pushableWalls:
+  - {x: 0, y: 4}
+  - {x: 0, y: 6}
   fireTiles:
-  - cell: {x: 0, y: 5}
+  - cell: {x: 3, y: 4}
     activeOnEvenTurn: 0
-    alwaysActive: 1
-  deadlyFireTiles: []
-  iceWalls: []
+    alwaysActive: 0
+  deadlyFireTiles:
+  - cell: {x: 3, y: 3}
+    activeOnEvenTurn: 1
+    alwaysActive: 0
+  iceWalls:
+  - cell: {x: 2, y: 6}
+    meltTurn: 2
   waters: []
   nonSlipTiles: []
   cornerLeftDownTiles: []

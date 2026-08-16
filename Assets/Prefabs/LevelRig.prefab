@@ -1464,6 +1464,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 595338433539672885, guid: 5b48655f961aa034cb3e59987c12e4ee, type: 3}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}
@@ -1478,6 +1480,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: -4577882492467488195, guid: bccc405a5dbf8ff4aadc6b6e7b7e5fdc, type: 3}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}
@@ -1492,6 +1496,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 5236466609331540025, guid: e579a1892e9ca8649945c791eba9ac53, type: 3}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}
@@ -1505,10 +1511,12 @@ MonoBehaviour:
   _fireTileOn:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 710954190618862366, guid: a707d4c3e27b78647b601c123188c432, type: 3}
-    controller: {fileID: 9100000, guid: c2e6a05eaa1420a40858bc106d1917ca, type: 2}
+    controller: {fileID: 9100000, guid: 25c756825d6b9824fb2f10c7a9e8a1cd, type: 2}
+    enterController: {fileID: 9100000, guid: c2e6a05eaa1420a40858bc106d1917ca, type: 2}
+    enterDuration: 0
     offset: {x: 0, y: 0.3}
     scale: 1
-    baseSprite: {fileID: -654613308891005214, guid: 427a747465b5f2b429f5f9964a29b444, type: 3}
+    baseSprite: {fileID: 3328298421228709280, guid: 1304c037f942544448be916eb0046353, type: 3}
     baseColor: {r: 1, g: 1, b: 1, a: 1}
     baseController: {fileID: 0}
     baseOffset: {x: 0, y: 0}
@@ -1519,10 +1527,12 @@ MonoBehaviour:
   _fireTileOff:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 0}
-    controller: {fileID: 9100000, guid: 475b26720eac63949b4ffbf2dd6d6850, type: 2}
+    controller: {fileID: 0}
+    enterController: {fileID: 9100000, guid: 475b26720eac63949b4ffbf2dd6d6850, type: 2}
+    enterDuration: 0
     offset: {x: 0, y: 0.3}
     scale: 1
-    baseSprite: {fileID: -654613308891005214, guid: 427a747465b5f2b429f5f9964a29b444, type: 3}
+    baseSprite: {fileID: -2147479005462490478, guid: 973d905b7cdefe84da97ff93b63ca6b2, type: 3}
     baseColor: {r: 1, g: 1, b: 1, a: 1}
     baseController: {fileID: 0}
     baseOffset: {x: 0, y: 0}
@@ -1532,11 +1542,13 @@ MonoBehaviour:
     labelSize: 4
   _fireTileDeadlyOn:
     color: {r: 1, g: 1, b: 1, a: 1}
-    sprite: {fileID: 0}
-    controller: {fileID: 9100000, guid: c26d15d2598523e44bd24f6be2a4a7ae, type: 2}
+    sprite: {fileID: -1349623415231794938, guid: 0355eab584873d046be00ee910660cc8, type: 3}
+    controller: {fileID: 9100000, guid: 0290e90c591c16a468e659f2b3cbc461, type: 2}
+    enterController: {fileID: 9100000, guid: c26d15d2598523e44bd24f6be2a4a7ae, type: 2}
+    enterDuration: 0
     offset: {x: 0, y: 0.3}
     scale: 1
-    baseSprite: {fileID: -654613308891005214, guid: 427a747465b5f2b429f5f9964a29b444, type: 3}
+    baseSprite: {fileID: 3328298421228709280, guid: 1304c037f942544448be916eb0046353, type: 3}
     baseColor: {r: 1, g: 1, b: 1, a: 1}
     baseController: {fileID: 0}
     baseOffset: {x: 0, y: 0}
@@ -1547,10 +1559,12 @@ MonoBehaviour:
   _fireTileDeadlyOff:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 0}
-    controller: {fileID: 9100000, guid: 0c1fd9bcde8210045a368aea7914c9e1, type: 2}
+    controller: {fileID: 0}
+    enterController: {fileID: 9100000, guid: 0c1fd9bcde8210045a368aea7914c9e1, type: 2}
+    enterDuration: 0
     offset: {x: 0, y: 0.3}
     scale: 1
-    baseSprite: {fileID: -654613308891005214, guid: 427a747465b5f2b429f5f9964a29b444, type: 3}
+    baseSprite: {fileID: -2147479005462490478, guid: 973d905b7cdefe84da97ff93b63ca6b2, type: 3}
     baseColor: {r: 1, g: 1, b: 1, a: 1}
     baseController: {fileID: 0}
     baseOffset: {x: 0, y: 0}
@@ -1562,6 +1576,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: -707859970047543756, guid: a3a393775d143004f84edf21098fe045, type: 3}
     controller: {fileID: 9100000, guid: 25c756825d6b9824fb2f10c7a9e8a1cd, type: 2}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0.3}
     scale: 1
     baseSprite: {fileID: -654613308891005214, guid: 427a747465b5f2b429f5f9964a29b444, type: 3}
@@ -1576,6 +1592,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 3463477195000439037, guid: 9181b1e8cc004a246883839d9ec0860a, type: 3}
     controller: {fileID: 9100000, guid: 0290e90c591c16a468e659f2b3cbc461, type: 2}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0.3}
     scale: 1
     baseSprite: {fileID: -654613308891005214, guid: 427a747465b5f2b429f5f9964a29b444, type: 3}
@@ -1590,6 +1608,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 8131116456512570694, guid: 8a5931c5b841c1343b3cdce86e4c5e02, type: 3}
@@ -1602,8 +1622,26 @@ MonoBehaviour:
     labelSize: 4
   _iceWall:
     color: {r: 1, g: 1, b: 1, a: 1}
-    sprite: {fileID: 595338433539672885, guid: 5b48655f961aa034cb3e59987c12e4ee, type: 3}
+    sprite: {fileID: 6189852664739223432, guid: 0bf0d7b432165ae42aa2ee4c81e66ac7, type: 3}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
+    label: '{r}'
+    labelColor: {r: 0.34509805, g: 0.454902, b: 0.68235296, a: 1}
+    labelSize: 6
+  _iceMelting:
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 6189852664739223432, guid: 0bf0d7b432165ae42aa2ee4c81e66ac7, type: 3}
+    controller: {fileID: 0}
+    enterController: {fileID: 9100000, guid: fabd25442bd3891499e4b67780bdc961, type: 2}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}
@@ -1618,6 +1656,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: -9171819887739478639, guid: 885dfc64668a9e941baf01df4e123e64, type: 3}
@@ -1632,6 +1672,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: -8054237569617448567, guid: 669670bba61db194da93195edd89bfa0, type: 3}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}
@@ -1646,6 +1688,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}
@@ -1660,6 +1704,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 3306139667486894288, guid: b160c4a5ce8787b44b1d737bfb31767c, type: 3}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}
@@ -1674,6 +1720,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: -6540541845449542365, guid: 763cf900ffa4ca349b14d0d39058018a, type: 3}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}
@@ -1688,6 +1736,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 8144515413702730057, guid: e98495fb365ea7840a811295a5ed24b4, type: 3}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}
@@ -1702,6 +1752,8 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: -1257415359387695765, guid: a8100d158551cfb4180370ed5d4925b8, type: 3}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}
@@ -1716,6 +1768,8 @@ MonoBehaviour:
     color: {r: 0.2, g: 0.85, b: 0.3, a: 1}
     sprite: {fileID: 0}
     controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
     baseSprite: {fileID: 0}

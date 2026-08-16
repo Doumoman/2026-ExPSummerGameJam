@@ -21,6 +21,14 @@ public class TileVisual
              "에디터 미리보기와 플레이 첫 프레임에는 위의 Sprite 가 보이므로 대표 프레임을 넣어두면 좋다")]
     public RuntimeAnimatorController controller;
 
+    [Tooltip("이 상태로 바뀌는 순간 딱 한 번 재생할 전환 애니메이션. 불이 커지는 Bigger 가 여기 들어간다. " +
+             "재생이 끝나면 위의 Controller(정상 상태)로 넘어간다. " +
+             "비우면 전환 없이 곧바로 Controller 로 간다. 상태가 그대로면 재생하지 않는다")]
+    public RuntimeAnimatorController enterController;
+
+    [Tooltip("전환 애니메이션 길이(초). 0이면 클립 길이에서 자동으로 잰다")]
+    [Min(0f)] public float enterDuration;
+
     [Tooltip("칸 중심에서 얼마나 밀어낼지. 한 칸이 1이라 0.25 면 4분의 1칸. " +
              "장작 위에 불을 얹을 때처럼 두 레이어를 눈으로 맞출 때 쓴다")]
     public Vector2 offset;
