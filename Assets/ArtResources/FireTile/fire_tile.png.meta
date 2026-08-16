@@ -1,22 +1,10 @@
 fileFormatVersion: 2
-guid: 9181b1e8cc004a246883839d9ec0860a
+guid: 8a5931c5b841c1343b3cdce86e4c5e02
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3463477195000439037
-    second: fire_L_idle_0
-  - first:
-      213: 3048289811548617627
-    second: fire_L_idle_1
-  - first:
-      213: 6096546743242614039
-    second: fire_L_idle_2
-  - first:
-      213: -8531965833889457222
-    second: fire_L_idle_3
-  - first:
-      213: -4516708075037965889
-    second: fire_L_idle_4
+      213: 8131116456512570694
+    second: fire_tile_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -125,67 +113,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: fire_L_idle_0
+      name: fire_tile_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 130
-        height: 200
+        height: 130
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: df0eaa7982eb01030800000000000000
-      internalID: 3463477195000439037
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: fire_L_idle_1
-      rect:
-        serializedVersion: 2
-        x: 130
-        y: 0
-        width: 130
-        height: 200
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b9b3ccdde63bd4a20800000000000000
-      internalID: 3048289811548617627
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: fire_L_idle_2
-      rect:
-        serializedVersion: 2
-        x: 260
-        y: 0
-        width: 130
-        height: 200
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7156a8b46f84b9450800000000000000
-      internalID: 6096546743242614039
+      spriteID: 645c3c1365787d070800000000000000
+      internalID: 8131116456512570694
       vertices: []
       indices: 
       edges: []
@@ -194,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 191339a40120d7d4581efdca9edd9261
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -202,13 +146,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries:
-      - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":3.0,"y":1.0},"gridSpriteSize":{"x":130.0,"y":200.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+      entries: []
     nameFileIdTable:
-      fire_L_idle_0: 3463477195000439037
-      fire_L_idle_1: 3048289811548617627
-      fire_L_idle_2: 6096546743242614039
+      fire_tile_0: 8131116456512570694
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
