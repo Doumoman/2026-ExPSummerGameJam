@@ -1666,7 +1666,7 @@ MonoBehaviour:
     baseController: {fileID: 0}
     baseOffset: {x: 0, y: 0}
     baseScale: 1
-    label: LD
+    label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
   _cornerLeftUp:
@@ -1680,7 +1680,7 @@ MonoBehaviour:
     baseController: {fileID: 0}
     baseOffset: {x: 0, y: 0}
     baseScale: 1
-    label: LU
+    label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
   _cornerRightDown:
@@ -1694,12 +1694,12 @@ MonoBehaviour:
     baseController: {fileID: 0}
     baseOffset: {x: 0, y: 0}
     baseScale: 1
-    label: RD
+    label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
   _cornerRightUp:
     color: {r: 1, g: 1, b: 1, a: 1}
-    sprite: {fileID: -6540541845449542365, guid: 763cf900ffa4ca349b14d0d39058018a, type: 3}
+    sprite: {fileID: -1257415359387695765, guid: a8100d158551cfb4180370ed5d4925b8, type: 3}
     controller: {fileID: 0}
     offset: {x: 0, y: 0}
     scale: 1
@@ -1708,7 +1708,7 @@ MonoBehaviour:
     baseController: {fileID: 0}
     baseOffset: {x: 0, y: 0}
     baseScale: 1
-    label: RU
+    label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
   _goal:
