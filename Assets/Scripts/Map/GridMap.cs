@@ -16,6 +16,9 @@ public class GridMap
     /// <summary>얼음 벽이 녹는 턴.</summary>
     readonly Dictionary<Vector2Int, int> _iceMeltTurn = new Dictionary<Vector2Int, int>();
 
+    /// <summary>밀리는 벽의 현재 위치. _tiles 를 덮어쓰지 않고 그 위에 얹히므로 밑의 타일이 그대로 남는다.</summary>
+    readonly HashSet<Vector2Int> _pushableWalls = new HashSet<Vector2Int>();
+
     public int Width { get; }
     public int Height { get; }
 
@@ -26,6 +29,7 @@ public class GridMap
         _tiles = new TileType[Width, Height];
 
         Paint(data.walls, TileType.Wall);
+        Paint(data.breakableWalls, TileType.BreakableWall);
         Paint(data.fireWalls, TileType.FireWall);
         Paint(data.deadlyFireWalls, TileType.FireWallDeadly);
 
@@ -43,6 +47,13 @@ public class GridMap
         }
 
         Paint(data.waters, TileType.Water);
+        Paint(data.nonSlipTiles, TileType.NonSlip);
+
+        if (data.pushableWalls != null)
+        {
+            foreach (var c in data.pushableWalls)
+                if (InBounds(c)) _pushableWalls.Add(c);
+        }
 
         // 맨 마지막에 찍어서 다른 것과 겹쳐도 골이 이긴다.
         if (InBounds(data.goal)) _tiles[data.goal.x, data.goal.y] = TileType.Goal;
@@ -74,10 +85,12 @@ public class GridMap
     public bool IsWalkable(Vector2Int c)
     {
         if (!InBounds(c)) return false;
+        if (_pushableWalls.Contains(c)) return false;
 
         switch (_tiles[c.x, c.y])
         {
             case TileType.Wall:
+            case TileType.BreakableWall:
             case TileType.FireWall:
             case TileType.FireWallDeadly:
             case TileType.IceWall:
@@ -114,6 +127,18 @@ public class GridMap
         }
         return melted;
     }
+
+    public bool HasPushableWall(Vector2Int c) => _pushableWalls.Contains(c);
+
+    /// <summary>밀리는 벽을 옮긴다. _tiles 는 건드리지 않으므로 밑에 깔려 있던 타일이 그대로 드러난다.</summary>
+    public void MovePushableWall(Vector2Int from, Vector2Int to)
+    {
+        if (!_pushableWalls.Remove(from)) return;
+        if (InBounds(to)) _pushableWalls.Add(to);
+    }
+
+    /// <summary>불 타일을 영구히 끈다. 타입은 그대로 두고 활성 턴 정보만 지운다.</summary>
+    public void ExtinguishFireTile(Vector2Int c) => _fireTileOnEven.Remove(c);
 
     /// <summary>런타임에 타일을 바꾼다. 물이 얼어붙는 경우에 쓴다.</summary>
     public void SetTile(Vector2Int c, TileType type)

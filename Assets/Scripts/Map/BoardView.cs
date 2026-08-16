@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
@@ -31,6 +32,8 @@ public class BoardView : MonoBehaviour
 
     [Header("Tile Visuals")]
     [SerializeField] TileVisual _wall = new TileVisual { color = new Color(0.6f, 0.6f, 0.65f) };
+    [SerializeField] TileVisual _breakableWall = new TileVisual { color = new Color(0.55f, 0.42f, 0.3f) };
+    [SerializeField] TileVisual _pushableWall = new TileVisual { color = new Color(0.6f, 0.5f, 0.8f) };
     [SerializeField] TileVisual _fireWall = new TileVisual { color = new Color(0.9f, 0.3f, 0.1f) };
     [SerializeField] TileVisual _fireWallDeadly = new TileVisual { color = new Color(0.55f, 0.05f, 0.1f) };
     [SerializeField] TileVisual _fireTileOn = new TileVisual { color = new Color(1f, 0.55f, 0.1f) };
@@ -40,6 +43,7 @@ public class BoardView : MonoBehaviour
     [SerializeField] TileVisual _iceWall = new TileVisual { color = new Color(0.55f, 0.8f, 0.95f) };
     [SerializeField] TileVisual _water = new TileVisual { color = new Color(0.25f, 0.55f, 0.95f) };
     [SerializeField] TileVisual _frozen = new TileVisual { color = new Color(0.8f, 0.92f, 0.98f) };
+    [SerializeField] TileVisual _nonSlip = new TileVisual { color = new Color(0.72f, 0.65f, 0.5f) };
     [SerializeField] TileVisual _goal = new TileVisual { color = new Color(0.2f, 0.85f, 0.3f) };
 
     [Header("Layout")]
@@ -49,6 +53,12 @@ public class BoardView : MonoBehaviour
     GridMap _map;
 
     readonly Dictionary<Vector2Int, Marker> _markers = new Dictionary<Vector2Int, Marker>();
+
+    /// <summary>
+    /// 밀리는 벽은 다른 타일 위에 얹히므로 _markers 와 칸이 겹칠 수 있다.
+    /// 같은 키를 두 번 쓸 수 없으니 별도로 관리한다.
+    /// </summary>
+    readonly Dictionary<Vector2Int, Marker> _pushableMarkers = new Dictionary<Vector2Int, Marker>();
 
     public Vector2Int SpawnCell => _level.spawn;
 
@@ -60,6 +70,66 @@ public class BoardView : MonoBehaviour
     public TileType GetTile(Vector2Int cell) => _map.Get(cell);
 
     public bool IsFireTileActive(Vector2Int cell, int turn) => _map.IsFireTileActive(cell, turn);
+
+    /// <summary>이 칸에 들어서면 슬라이드가 멈추는지. 밀리는 벽도 같은 판정을 쓴다.</summary>
+    public bool StopsSlide(Vector2Int cell) => _map.Get(cell) == TileType.NonSlip;
+
+    public bool HasPushableWall(Vector2Int cell) => _map.HasPushableWall(cell);
+
+    /// <summary>
+    /// 밀리는 벽을 dir 방향으로 막힐 때까지 밀어낸다. 실제로 민 칸수를 돌려준다(0이면 못 밀었다).
+    /// 정지 조건은 플레이어와 같다 - 통과 불가 타일/맵 경계에 막히거나, 안 미끄러지는 타일에 올라섰을 때.
+    /// 지나가는 칸의 불 타일은 꺼지고, 물은 건드리지 않는다.
+    /// </summary>
+    public int PushWall(Vector2Int cell, Vector2Int dir, float moveDuration)
+    {
+        if (!_pushableMarkers.TryGetValue(cell, out var marker)) return 0;
+
+        var path = new List<Vector2Int>();
+        var cur = cell;
+
+        while (_map.IsWalkable(cur + dir))
+        {
+            cur += dir;
+            path.Add(cur);
+
+            if (StopsSlide(cur)) break;
+        }
+
+        if (path.Count == 0) return 0;
+
+        var dest = path[path.Count - 1];
+        _map.MovePushableWall(cell, dest);
+
+        _pushableMarkers.Remove(cell);
+        _pushableMarkers[dest] = marker;
+
+        var slide = DOTween.Sequence();
+        foreach (var step in path)
+        {
+            // 루프 안에서 선언해야 콜백이 각 반복의 값을 따로 캡처한다.
+            var entering = step;
+
+            slide.Append(marker.Renderer.transform
+                .DOLocalMove(new Vector3(entering.x, entering.y, 0f), moveDuration)
+                .SetEase(Ease.Linear));
+            slide.AppendCallback(() => ExtinguishFire(entering));
+        }
+
+        return path.Count;
+    }
+
+    /// <summary>밀리는 벽이 지나간 불 타일을 영구히 끈다. 타입은 그대로라 꺼진 색으로 계속 보인다.</summary>
+    void ExtinguishFire(Vector2Int cell)
+    {
+        var type = _map.Get(cell);
+        if (type != TileType.FireTile && type != TileType.FireTileDeadly) return;
+
+        _map.ExtinguishFireTile(cell);
+
+        if (_markers.TryGetValue(cell, out var marker))
+            Apply(marker, type == TileType.FireTile ? _fireTileOff : _fireTileDeadlyOff, cell);
+    }
 
     /// <summary>
     /// 이동이 끝난 직후 호출한다. 다음 턴 기준으로 얼음을 녹이고 불 타일 표시를 갱신한다.
@@ -98,6 +168,15 @@ public class BoardView : MonoBehaviour
         }
     }
 
+    /// <summary>깨지는 벽을 부숴 바닥으로 만든다. LevelData는 그대로라 다시 구우면 복구된다.</summary>
+    public void BreakWall(Vector2Int cell)
+    {
+        if (_map.Get(cell) != TileType.BreakableWall) return;
+
+        _map.SetTile(cell, TileType.Floor);
+        if (_markers.TryGetValue(cell, out var marker)) marker.Renderer.gameObject.SetActive(false);
+    }
+
     /// <summary>물을 얼려 영구 차단으로 바꾼다. LevelData는 그대로라 다시 구우면 복구된다.</summary>
     public void FreezeWater(Vector2Int cell)
     {
@@ -133,6 +212,9 @@ public class BoardView : MonoBehaviour
                 var cell = new Vector2Int(x, y);
                 SpawnFloor(container, cell, (x + y) % 2 == 0 ? _floorDark : _floorLight);
 
+                // 밀리는 벽은 _tiles 밖에 있어서 Get 으로는 안 잡힌다. 밑의 타일과 함께 그린다.
+                if (_map.HasPushableWall(cell)) SpawnPushableMarker(container, cell);
+
                 var type = _map.Get(cell);
                 if (type == TileType.Floor) continue;
 
@@ -149,6 +231,8 @@ public class BoardView : MonoBehaviour
         switch (type)
         {
             case TileType.Wall: return _wall;
+            case TileType.BreakableWall: return _breakableWall;
+            case TileType.PushableWall: return _pushableWall;
             case TileType.FireWall: return _fireWall;
             case TileType.FireWallDeadly: return _fireWallDeadly;
             case TileType.FireTile: return _fireTileOff;
@@ -156,6 +240,7 @@ public class BoardView : MonoBehaviour
             case TileType.IceWall: return _iceWall;
             case TileType.Water: return _water;
             case TileType.Frozen: return _frozen;
+            case TileType.NonSlip: return _nonSlip;
             case TileType.Goal: return _goal;
             default: return null;
         }
@@ -212,6 +297,7 @@ public class BoardView : MonoBehaviour
     public void ClearBoard()
     {
         _markers.Clear();
+        _pushableMarkers.Clear();
 
         for (int i = transform.childCount - 1; i >= 0; i--)
         {
@@ -245,6 +331,16 @@ public class BoardView : MonoBehaviour
         _markers[cell] = marker;
 
         Apply(marker, VisualOf(type), cell);
+    }
+
+    /// <summary>밑의 타일과 그 라벨(2)까지 가려야 하므로 정렬 순서를 3으로 올린다.</summary>
+    void SpawnPushableMarker(Transform parent, Vector2Int cell)
+    {
+        var sr = SpawnSprite(parent, $"PushableWall_{cell.x}_{cell.y}", cell, 3, _markerScale);
+        var marker = new Marker { Renderer = sr };
+        _pushableMarkers[cell] = marker;
+
+        Apply(marker, _pushableWall, cell);
     }
 
     SpriteRenderer SpawnSprite(Transform parent, string label, Vector2Int cell, int order, float scale)

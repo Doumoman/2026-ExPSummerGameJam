@@ -2,8 +2,17 @@ public enum TileType
 {
     Floor,
 
+    /// <summary>안 미끄러지는 타일 - 통과 가능. 들어서는 순간 슬라이드가 멈춘다</summary>
+    NonSlip,
+
     /// <summary>일반 벽(기둥) - 통과 불가. 피해 없음</summary>
     Wall,
+
+    /// <summary>깨지는 벽 - 통과 불가. 부딪히면 깨져서 사라진다. 피해 없음</summary>
+    BreakableWall,
+
+    /// <summary>밀리는 벽 - 통과 불가. 부딪히면 막힐 때까지 밀려난다. 피해 없음</summary>
+    PushableWall,
 
     /// <summary>1데미지 불 벽 - 통과 불가. 부딪히면 HP 1</summary>
     FireWall,

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
@@ -31,6 +31,12 @@ public class LevelData : ScriptableObject
     [Header("일반 벽(기둥) - 통과 불가, 피해 없음")]
     public List<Vector2Int> walls = new List<Vector2Int>();
 
+    [Tooltip("깨지는 벽 - 부딪히면 깨져서 사라진다. 피해 없음")]
+    public List<Vector2Int> breakableWalls = new List<Vector2Int>();
+
+    [Tooltip("밀리는 벽 - 부딪히면 막힐 때까지 밀려난다. 다른 타일 위에 얹히므로 밑의 타일은 남는다")]
+    public List<Vector2Int> pushableWalls = new List<Vector2Int>();
+
     [Header("불 벽 - 통과 불가, 슬라이드를 멈춘다")]
     [Tooltip("부딪히면 HP 1")]
     public List<Vector2Int> fireWalls = new List<Vector2Int>();
@@ -51,6 +57,9 @@ public class LevelData : ScriptableObject
 
     [Tooltip("물 - 1회만 통과 가능. 떠나는 순간 얼어붙어 영구 차단")]
     public List<Vector2Int> waters = new List<Vector2Int>();
+
+    [Tooltip("안 미끄러지는 타일 - 들어서는 순간 슬라이드가 멈춘다. 붙여 놓으면 한 칸씩 걷는 구간이 된다")]
+    public List<Vector2Int> nonSlipTiles = new List<Vector2Int>();
 
     [Tooltip("도착 지점. 10x10 맵의 우상단 끝은 (9,9)")]
     public Vector2Int goal = new Vector2Int(9, 9);
