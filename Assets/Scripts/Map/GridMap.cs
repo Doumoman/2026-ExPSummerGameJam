@@ -10,8 +10,14 @@ public class GridMap
 {
     readonly TileType[,] _tiles;
 
-    /// <summary>불 타일이 짝수 턴 활성인지. false면 홀수 턴 활성.</summary>
-    readonly Dictionary<Vector2Int, bool> _fireTileOnEven = new Dictionary<Vector2Int, bool>();
+    /// <summary>
+    /// 불 타일이 켜지는 시점. 피해량은 TileType 이 정하고 이쪽은 언제 켜지는지만 정한다.
+    /// 둘을 나눠 놔야 1데미지/즉사 각각에 깜빡임과 상시를 따로 조합할 수 있다.
+    /// </summary>
+    enum FirePhase { Even, Odd, Always }
+
+    /// <summary>불 타일이 언제 활성인지. 여기 없으면 불 타일이 아니다.</summary>
+    readonly Dictionary<Vector2Int, FirePhase> _firePhase = new Dictionary<Vector2Int, FirePhase>();
 
     /// <summary>얼음 벽이 녹는 턴.</summary>
     readonly Dictionary<Vector2Int, int> _iceMeltTurn = new Dictionary<Vector2Int, int>();
@@ -75,7 +81,11 @@ public class GridMap
         {
             if (!InBounds(f.cell)) continue;
             _tiles[f.cell.x, f.cell.y] = type;
-            _fireTileOnEven[f.cell] = f.activeOnEvenTurn;
+
+            // 상시 활성이면 짝/홀 설정은 볼 필요가 없다.
+            _firePhase[f.cell] = f.alwaysActive
+                ? FirePhase.Always
+                : f.activeOnEvenTurn ? FirePhase.Even : FirePhase.Odd;
         }
     }
 
@@ -153,9 +163,23 @@ public class GridMap
     /// <summary>불 타일이 해당 턴에 활성인지. 불 타일이 아니면 false.</summary>
     public bool IsFireTileActive(Vector2Int c, int turn)
     {
-        if (!_fireTileOnEven.TryGetValue(c, out bool onEven)) return false;
-        return (turn % 2 == 0) == onEven;
+        if (!_firePhase.TryGetValue(c, out var phase)) return false;
+
+        switch (phase)
+        {
+            case FirePhase.Always: return true;
+            case FirePhase.Even: return turn % 2 == 0;
+            default: return turn % 2 != 0;
+        }
     }
+
+    /// <summary>
+    /// 깜빡이지 않고 늘 켜져 있는 불인지. 표현을 가르는 데 쓴다.
+    /// 켜진 순간만 보면 깜빡이는 불과 구별이 안 되는데, 다음 턴에 꺼질지 아닐지가
+    /// 공략의 전부라 플레이어가 눈으로 알아볼 수 있어야 한다.
+    /// </summary>
+    public bool IsFireAlwaysActive(Vector2Int c) =>
+        _firePhase.TryGetValue(c, out var phase) && phase == FirePhase.Always;
 
     /// <summary>
     /// meltTurn이 completedTurn 이하인 얼음 벽을 녹여 바닥으로 만든다. 녹은 칸 목록을 돌려준다.
@@ -190,13 +214,13 @@ public class GridMap
     public void RemovePushableWall(Vector2Int c) => _pushableWalls.Remove(c);
 
     /// <summary>
-    /// 불 타일을 영구히 끈다. 활성 턴 정보를 지우고 타입을 DousedFire 로 바꾼다.
+    /// 불 타일을 영구히 끈다. 활성 시점 정보를 지우고 타입을 DousedFire 로 바꾼다.
     /// 타입이 바뀌므로 RefreshForTurn 의 불 분기에 더는 걸리지 않아 꺼진 표현이 그대로 남는다.
-    /// 불 타일이 아니었으면 아무것도 하지 않는다.
+    /// 상시 활성인 불도 똑같이 꺼진다. 불 타일이 아니었으면 아무것도 하지 않는다.
     /// </summary>
     public void ExtinguishFireTile(Vector2Int c)
     {
-        if (!_fireTileOnEven.Remove(c)) return;
+        if (!_firePhase.Remove(c)) return;
         SetTile(c, TileType.DousedFire);
     }
 

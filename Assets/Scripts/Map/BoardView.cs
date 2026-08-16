@@ -39,6 +39,12 @@ public class BoardView : MonoBehaviour
     [SerializeField] TileVisual _fireTileDeadlyOn = new TileVisual { color = new Color(0.85f, 0.1f, 0.15f) };
     [SerializeField] TileVisual _fireTileDeadlyOff = new TileVisual { color = new Color(0.3f, 0.12f, 0.14f) };
 
+    [Tooltip("깜빡이지 않고 늘 켜져 있는 1데미지 불. 켜진 깜빡이 불과 눈으로 구별되어야 한다")]
+    [SerializeField] TileVisual _fireTileAlways = new TileVisual { color = new Color(1f, 0.78f, 0.25f) };
+
+    [Tooltip("깜빡이지 않고 늘 켜져 있는 즉사 불. 켜진 깜빡이 불과 눈으로 구별되어야 한다")]
+    [SerializeField] TileVisual _fireTileDeadlyAlways = new TileVisual { color = new Color(1f, 0.25f, 0.45f) };
+
     [Tooltip("밀리는 벽에 닿아 영구히 꺼진 불. 한 번 적용되면 턴이 바뀌어도 다시 그리지 않는다")]
     [SerializeField] TileVisual _dousedFire = new TileVisual { color = new Color(0.5f, 0.55f, 0.6f) };
 
@@ -247,7 +253,10 @@ public class BoardView : MonoBehaviour
         RefreshForTurn(completedTurn + 1);
     }
 
-    /// <summary>불 타일의 활성/비활성 표현을 해당 턴 기준으로 갱신한다.</summary>
+    /// <summary>
+    /// 불 타일의 활성/비활성 표현을 해당 턴 기준으로 갱신한다.
+    /// 상시 활성인 불은 턴과 무관하게 전용 표현으로 고정된다.
+    /// </summary>
     public void RefreshForTurn(int turn)
     {
         foreach (var pair in _markers)
@@ -257,14 +266,15 @@ public class BoardView : MonoBehaviour
             if (marker.Renderer == null) continue;
 
             bool active = _map.IsFireTileActive(cell, turn);
+            bool always = _map.IsFireAlwaysActive(cell);
 
             switch (_map.Get(cell))
             {
                 case TileType.FireTile:
-                    Apply(marker, active ? _fireTileOn : _fireTileOff, cell);
+                    Apply(marker, always ? _fireTileAlways : (active ? _fireTileOn : _fireTileOff), cell);
                     break;
                 case TileType.FireTileDeadly:
-                    Apply(marker, active ? _fireTileDeadlyOn : _fireTileDeadlyOff, cell);
+                    Apply(marker, always ? _fireTileDeadlyAlways : (active ? _fireTileDeadlyOn : _fireTileDeadlyOff), cell);
                     break;
             }
         }

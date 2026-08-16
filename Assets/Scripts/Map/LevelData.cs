@@ -6,8 +6,11 @@ public struct FireTileData
 {
     public Vector2Int cell;
 
-    [Tooltip("true = 짝수 턴에 활성, false = 홀수 턴에 활성")]
+    [Tooltip("true = 짝수 턴에 활성, false = 홀수 턴에 활성. Always Active 를 켜면 무시된다")]
     public bool activeOnEvenTurn;
+
+    [Tooltip("켜면 깜빡이지 않고 항상 활성. 위의 짝/홀 설정은 무시된다")]
+    public bool alwaysActive;
 }
 
 [System.Serializable]
@@ -37,11 +40,11 @@ public class LevelData : ScriptableObject
     [Tooltip("밀리는 벽 - 부딪히면 막힐 때까지 밀려난다. 다른 타일 위에 얹히므로 밑의 타일은 남는다")]
     public List<Vector2Int> pushableWalls = new List<Vector2Int>();
 
-    [Header("불 타일 - 통과 가능, 활성 턴에만 피해")]
-    [Tooltip("활성 턴에 밟으면 HP 1")]
+    [Header("불 타일 - 통과 가능, 활성일 때만 피해. 항목마다 깜빡임(짝/홀)과 상시 활성 중에 고른다")]
+    [Tooltip("활성일 때 밟으면 HP 1")]
     public List<FireTileData> fireTiles = new List<FireTileData>();
 
-    [Tooltip("활성 턴에 밟으면 즉사")]
+    [Tooltip("활성일 때 밟으면 즉사")]
     public List<FireTileData> deadlyFireTiles = new List<FireTileData>();
 
     [Header("그 외")]
