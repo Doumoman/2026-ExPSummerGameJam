@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81cd17b9193086144811cf5dffefe8c3, type: 3}
   m_Name: Test
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
-  width: 10
+  width: 6
   height: 10
   spawn: {x: 0, y: 0}
   walls: []
@@ -30,6 +30,6 @@ MonoBehaviour:
   cornerLeftUpTiles: []
   cornerRightDownTiles: []
   cornerRightUpTiles: []
-  goal: {x: 9, y: 9}
+  goal: {x: 5, y: 9}
   nextSceneAsset: {fileID: 0}
   nextScene: 
