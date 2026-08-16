@@ -241,14 +241,14 @@ public class BoardView : MonoBehaviour
     }
 
     /// <summary>
-    /// 이동이 끝난 직후 호출한다. 방금 끝난 턴 기준으로 얼음을 녹인다.
-    /// 얼음은 "몇 턴을 버텼는가"라 끝난 턴을 본다.
-    /// meltTurn이 3이면 3턴 이동까지 막아내고 그 이동이 끝난 이 시점에 녹아서 4턴부터 지나갈 수 있다.
-    /// 불 표시는 여기서 건드리지 않는다. 다음 턴이 실제로 시작될 때 RefreshForTurn 으로 넘긴다.
+    /// 이 턴에 녹을 얼음을 전부 녹인다. 턴이 시작될 때, 이동 경로를 계산하기 전에 부른다.
+    /// meltTurn이 3이면 3턴이 시작되는 순간 녹으므로 그 3턴 이동부터 지나갈 수 있다.
+    /// 경로 계산보다 먼저 부르지 않으면 녹기로 예정된 얼음 앞에서 한 턴을 헛되이 멈춘다.
+    /// 이미 녹은 얼음은 건너뛰므로 같은 턴에 여러 번 불려도 결과가 같다.
     /// </summary>
-    public void PostMove(int completedTurn)
+    public void MeltIce(int turn)
     {
-        foreach (var cell in _map.MeltIce(completedTurn))
+        foreach (var cell in _map.MeltIce(turn))
             if (_markers.TryGetValue(cell, out var marker)) marker.Renderer.gameObject.SetActive(false);
     }
 

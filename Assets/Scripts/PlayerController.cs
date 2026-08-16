@@ -73,7 +73,7 @@ public class PlayerController : MonoBehaviour
 
         // 첫 이동은 1턴이다. 0턴은 아직 아무것도 안 했으므로 보통은 녹을 얼음이 없다.
         // 0턴 기준 불 표시는 BuildMap 이 이미 맞춰 놓았고, 1턴으로 뒤집는 건 첫 입력이 맡는다.
-        _board.PostMove(0);
+        _board.MeltIce(0);
     }
 
     void Update()
@@ -98,6 +98,11 @@ public class PlayerController : MonoBehaviour
         if (dir == Vector2Int.zero) dir = swipeDir;
         if (dir == Vector2Int.zero) return;
 
+        // 이번 턴에 녹을 얼음을 경로 계산보다 먼저 치운다. 녹은 뒤의 판을 봐야
+        // 녹는 얼음 앞에서 서지 않고 그 너머까지 그대로 미끄러져 간다.
+        // 아직 턴을 확정하기 전이지만, 이미 녹은 얼음은 건너뛰므로 여러 번 불려도 결과가 같아 안전하다.
+        _board.MeltIce(_turn + 1);
+
         var path = BuildSlidePath(dir, out var slideDir, out var blocked);
 
         // 제자리에서는 앞칸을 건드리지 않는다. 최소 한 칸은 미끄러져 와서 부딪혀야 상호작용이 성립한다.
@@ -106,8 +111,9 @@ public class PlayerController : MonoBehaviour
 
         _turn++;
 
-        // 불이 깜빡이는 시점은 턴이 시작되는 바로 여기다. 미끄러지기 전에 갱신해야
+        // 불이 깜빡이는 시점도 턴이 시작되는 바로 여기다. 미끄러지기 전에 갱신해야
         // 이번 턴에 밟게 될 불의 표시와 OnEnterCell 의 피해 판정이 같은 턴을 본다.
+        // 얼음과 달리 통행에 영향을 주지 않으므로 경로 계산 뒤에 해도 된다.
         _board.RefreshForTurn(_turn);
 
         RefreshHUD();
@@ -220,18 +226,15 @@ public class PlayerController : MonoBehaviour
 
     /// <summary>
     /// 턴 마무리. 입력 한 번으로 시작된 움직임(플레이어 슬라이드 + 밀린 벽 슬라이드)이
-    /// 전부 끝난 뒤에 딱 한 번 불려야 한다. 벽이 미끄러지는 도중에 부르면
-    /// 불 타일이 다음 턴 상태로 바뀌어 한 턴 안에서 켜졌다 꺼지는 것처럼 보인다.
+    /// 전부 끝난 뒤에 딱 한 번 불려야 한다.
+    /// 판을 바꾸는 일(얼음 녹이기, 불 깜빡임)은 전부 다음 턴이 시작될 때로 미뤄져 있으므로
+    /// 여기서는 입력 잠금을 풀고 클리어 여부만 본다.
     /// </summary>
     void EndTurn()
     {
         _wallMoving = false;
 
         if (_gameOver) return;
-
-        // 얼음만 녹인다. 불 깜빡임은 다음 턴이 실제로 시작될 때까지 미룬다.
-        _board.PostMove(_turn);
-
         if (_cleared) LoadNextStage();
     }
 
