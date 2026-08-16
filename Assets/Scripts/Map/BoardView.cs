@@ -94,9 +94,11 @@ public class BoardView : MonoBehaviour
     /// 밀리는 벽을 dir 방향으로 막힐 때까지 밀어낸다. 실제로 민 칸수를 돌려준다(0이면 못 밀었다).
     /// 정지 조건은 플레이어와 같다 - 통과 불가 타일/맵 경계에 막히거나, 안 미끄러지는 타일에 올라섰을 때.
     /// 방향 전환 타일에서는 플레이어와 똑같이 꺾인다.
-    /// 지나가는 칸의 불 타일은 꺼지고, 물은 건드리지 않는다.
+    /// 부딪혀 멈춘 칸이 깨지는 벽이면 그 벽을 부수고, 밀린 벽은 그 앞에 선다.
+    /// 활성 상태인 불 타일에 닿으면 그 칸에서 벽이 타 사라지고 불도 영구히 꺼진다.
+    /// 꺼져 있는 불 타일과 물은 그냥 지나간다.
     /// </summary>
-    public int PushWall(Vector2Int cell, Vector2Int dir, float moveDuration)
+    public int PushWall(Vector2Int cell, Vector2Int dir, float moveDuration, int turn)
     {
         if (!_pushableMarkers.TryGetValue(cell, out var marker)) return 0;
 
@@ -105,20 +107,36 @@ public class BoardView : MonoBehaviour
         var cur = cell;
         var curDir = dir;
 
+        // 루프를 벗어난 이유. 앞이 막혀서 멈춘 것과 제 발로 선 것을 구분해야
+        // 부딪히지도 않은 깨지는 벽을 부수지 않는다.
+        bool blocked = true;
+        bool burned = false;   // 활성 불 타일에 닿아 타 사라지는지
+
         while (_map.IsWalkable(cur + curDir))
         {
             cur += curDir;
             path.Add(cur);
 
-            if (StopsSlide(cur)) break;
+            // 활성 상태인 불 타일에 닿는 순간 벽은 타 사라지고 그 불도 영구히 꺼진다.
+            if (_map.IsFireTileActive(cur, turn)) { blocked = false; burned = true; break; }
+
+            if (StopsSlide(cur)) { blocked = false; break; }
 
             curDir = Deflect(cur, curDir);
 
             // 전환 타일을 순환으로 배치하면 영원히 돌 수 있어서 같은 (칸, 방향)이 다시 나오면 멈춘다.
-            if (!visited.Add((cur, curDir))) break;
+            if (!visited.Add((cur, curDir))) { blocked = false; break; }
         }
 
-        if (path.Count == 0) return 0;
+        // 부딪혀서 멈춘 칸. 깨지는 벽이면 부수고, 밀린 벽은 그 앞에 그대로 선다.
+        var hit = cur + curDir;
+
+        if (path.Count == 0)
+        {
+            // 한 칸도 못 밀었어도 부딪히긴 했으므로 깨지는 벽은 부순다.
+            if (blocked) BreakWall(hit);
+            return 0;
+        }
 
         var dest = path[path.Count - 1];
         _map.MovePushableWall(cell, dest);
@@ -129,19 +147,36 @@ public class BoardView : MonoBehaviour
         var slide = DOTween.Sequence();
         foreach (var step in path)
         {
-            // 루프 안에서 선언해야 콜백이 각 반복의 값을 따로 캡처한다.
-            var entering = step;
-
             slide.Append(marker.Renderer.transform
-                .DOLocalMove(new Vector3(entering.x, entering.y, 0f), moveDuration)
+                .DOLocalMove(new Vector3(step.x, step.y, 0f), moveDuration)
                 .SetEase(Ease.Linear));
-            slide.AppendCallback(() => ExtinguishFire(entering));
         }
+
+        // 도착한 그 순간에 처리한다. 플레이어가 OnSlideEnd 에서 부수는 것과 같은 타이밍이다.
+        if (burned) slide.OnComplete(() => BurnWall(dest));
+        else if (blocked) slide.OnComplete(() => BreakWall(hit));
 
         return path.Count;
     }
 
-    /// <summary>밀리는 벽이 지나간 불 타일을 영구히 끈다. 타입은 그대로라 꺼진 색으로 계속 보인다.</summary>
+    /// <summary>
+    /// 밀리는 벽이 활성 불 타일에 닿은 순간. 불은 영구히 꺼지고 벽은 타서 사라진다.
+    /// 벽을 없애도 밑에 깔려 있던 불 타일은 _tiles 에 그대로라 꺼진 모습으로 드러난다.
+    /// </summary>
+    void BurnWall(Vector2Int cell)
+    {
+        ExtinguishFire(cell);
+
+        _map.RemovePushableWall(cell);
+
+        if (_pushableMarkers.TryGetValue(cell, out var marker))
+        {
+            marker.Renderer.gameObject.SetActive(false);
+            _pushableMarkers.Remove(cell);
+        }
+    }
+
+    /// <summary>불 타일을 영구히 끈다. 타입은 그대로라 꺼진 색으로 계속 보인다.</summary>
     void ExtinguishFire(Vector2Int cell)
     {
         var type = _map.Get(cell);

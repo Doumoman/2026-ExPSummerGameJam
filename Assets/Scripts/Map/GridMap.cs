@@ -135,6 +135,9 @@ public class GridMap
         if (InBounds(to)) _pushableWalls.Add(to);
     }
 
+    /// <summary>밀리는 벽을 없앤다. 불에 타 사라지는 경우에 쓴다.</summary>
+    public void RemovePushableWall(Vector2Int c) => _pushableWalls.Remove(c);
+
     /// <summary>불 타일을 영구히 끈다. 타입은 그대로 두고 활성 턴 정보만 지운다.</summary>
     public void ExtinguishFireTile(Vector2Int c) => _fireTileOnEven.Remove(c);
 

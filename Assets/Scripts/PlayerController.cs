@@ -34,6 +34,7 @@ public class PlayerController : MonoBehaviour
 
     Vector2Int _cell;
     Vector2Int _slideDir;
+    bool _slideBlocked;
     int _hp;
     int _turn;
     float _cooldown;
@@ -87,27 +88,41 @@ public class PlayerController : MonoBehaviour
         if (dir == Vector2Int.zero) dir = swipeDir;
         if (dir == Vector2Int.zero) return;
 
-        var path = BuildSlidePath(dir, out var slideDir);
-        if (path.Count == 0) return;   // 한 칸도 못 가면 턴도 오르지 않는다
+        var path = BuildSlidePath(dir, out var slideDir, out var blocked);
+
+        // 한 칸도 못 가더라도 바로 앞 벽에 부딪힌 것은 맞다.
+        // 벽에 붙어 선 상태에서도 밀거나 부술 수 있어야 하므로 여기서 처리한다.
+        if (path.Count == 0)
+        {
+            // 불 타일 활성 판정이 턴 번호를 보므로 먼저 올리고, 아무 일도 없었으면 되돌린다.
+            _turn++;
+            if (!HitFront(dir)) { _turn--; return; }
+
+            RefreshHud();
+            _board.PostMove(_turn);   // 슬라이드가 없어 OnSlideEnd 를 안 거치므로 여기서 턴을 넘긴다
+            return;
+        }
 
         _turn++;
         RefreshHud();
-        StartSlide(path, slideDir);   // 전환 타일을 지났다면 입력 방향이 아니라 최종 방향이 들어간다
+        StartSlide(path, slideDir, blocked);   // 전환 타일을 지났다면 입력 방향이 아니라 최종 방향이 들어간다
     }
 
     /// <summary>
     /// 막힐 때까지의 경로를 미리 전부 계산한다.
     /// 방향 전환 타일을 지나면 경로가 꺾이므로 최종 진행 방향을 finalDir 로 함께 돌려준다.
+    /// blocked 는 앞이 막혀서 멈췄는지 - 제 발로 선 것과 구분해야 부딪히지도 않은 벽을 부수지 않는다.
     /// 맵 경계 밖은 IsWalkable이 false라 보통은 거기서 멈추지만, 전환 타일을 순환으로
     /// 배치하면 영원히 돌 수 있어서 (칸, 방향) 조합이 반복되면 멈춘다.
     /// </summary>
-    List<Vector2Int> BuildSlidePath(Vector2Int dir, out Vector2Int finalDir)
+    List<Vector2Int> BuildSlidePath(Vector2Int dir, out Vector2Int finalDir, out bool blocked)
     {
         var path = new List<Vector2Int>();
         var visited = new HashSet<(Vector2Int, Vector2Int)>();
         var cur = _cell;
 
         finalDir = dir;
+        blocked = true;
 
         while (_board.IsWalkable(cur + finalDir))
         {
@@ -116,23 +131,24 @@ public class PlayerController : MonoBehaviour
 
             // 안 미끄러지는 타일에 들어서면 그 칸에서 끝난다.
             // 이런 타일이 연달아 있으면 자연히 한 칸씩 걷게 되고, 한 칸짜리면 다음 입력부터 다시 미끄러진다.
-            if (_board.StopsSlide(cur)) break;
+            if (_board.StopsSlide(cur)) { blocked = false; break; }
 
             // 방향 전환 타일이면 여기서 꺾는다. 입력 한 번이 한 턴이라 꺾여도 턴은 오르지 않는다.
             finalDir = _board.Deflect(cur, finalDir);
 
-            if (!visited.Add((cur, finalDir))) break;
+            if (!visited.Add((cur, finalDir))) { blocked = false; break; }
         }
         return path;
     }
 
-    void StartSlide(List<Vector2Int> path, Vector2Int dir)
+    void StartSlide(List<Vector2Int> path, Vector2Int dir, bool blocked)
     {
         SetMoving(true);
 
         var start = _cell;
         _cell = path[path.Count - 1];
         _slideDir = dir;
+        _slideBlocked = blocked;
         _cooldown = path.Count * _moveDuration;
 
         _slide = DOTween.Sequence();
@@ -176,25 +192,46 @@ public class PlayerController : MonoBehaviour
         _slide = null;
         SetMoving(false);
 
-        // 밀리는 벽은 _tiles 위에 얹혀 있어 GetTile 로는 안 잡히므로 따로 물어본다.
-        // 벽이 미끄러지는 동안은 입력을 잠근다.
-        var front = _cell + _slideDir;
-        if (_board.HasPushableWall(front))
-            _cooldown = _board.PushWall(front, _slideDir, _moveDuration) * _moveDuration;
-
-        // 슬라이드를 멈춰 세운 칸. 깨지는 벽이면 여기서 부순다.
-        switch (_board.GetTile(_cell + _slideDir))
-        {
-            case TileType.BreakableWall:
-                _board.BreakWall(_cell + _slideDir);
-                break;
-        }
+        // 벽에 부딪혀 멈춘 경우에만 앞칸에 작용한다.
+        // 안 미끄러지는 타일에 올라서서 스스로 선 것은 충돌이 아니므로 앞칸을 건드리지 않는다.
+        if (_slideBlocked) HitFront(_slideDir);
 
         if (_gameOver) return;
 
         _board.PostMove(_turn);   // 다음 턴 준비: 얼음 녹이기 + 불 타일 표시 갱신
 
         if (_cleared) LoadNextStage();
+    }
+
+    /// <summary>
+    /// 부딪힌 바로 그 순간 앞칸에 작용한다. 실제로 무언가 일어났으면 true.
+    /// 미끄러져 와서 부딪힌 경우와 벽에 붙어 선 채 밀어붙인 경우가 같은 처리를 타야
+    /// 연출과 사운드 타이밍이 한 지점으로 모인다.
+    /// </summary>
+    bool HitFront(Vector2Int dir)
+    {
+        var front = _cell + dir;
+        bool acted = false;
+
+        // 밀리는 벽은 _tiles 위에 얹혀 있어 GetTile 로는 안 잡히므로 따로 물어본다.
+        // 벽이 미끄러지는 동안은 입력을 잠근다.
+        if (_board.HasPushableWall(front))
+        {
+            int pushed = _board.PushWall(front, dir, _moveDuration, _turn);
+            _cooldown = pushed * _moveDuration;
+
+            if (pushed > 0) acted = true;   // 꿈쩍도 안 했으면 일반 벽을 민 것과 같다
+        }
+
+        switch (_board.GetTile(front))
+        {
+            case TileType.BreakableWall:
+                _board.BreakWall(front);
+                acted = true;
+                break;
+        }
+
+        return acted;
     }
 
     /// <summary>슬라이드 도중 사망하면 그 칸에서 즉시 멈춘다.</summary>
