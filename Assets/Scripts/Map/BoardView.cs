@@ -81,6 +81,11 @@ public class BoardView : MonoBehaviour
              "Enter Controller 를 비우면 연출 없이 즉시 사라진다")]
     [SerializeField] TileVisual _breakableWallCrash = new TileVisual();
 
+    [Tooltip("드래그로 칠하는 벽의 그림 종류. 여기 늘린 만큼 씬 뷰 팔레트에 뜬다. " +
+             "레벨의 칸마다 이 배열의 인덱스(kind)를 들고 있다. " +
+             "순서를 바꾸면 이미 칠해 놓은 칸의 그림이 따라 바뀌므로 뒤에 추가만 하는 게 안전하다")]
+    [SerializeField] TileVisual[] _blockWalls = new TileVisual[1];
+
     [SerializeField] TileVisual _pushableWall = new TileVisual { color = new Color(0.6f, 0.5f, 0.8f) };
     [SerializeField] TileVisual _fireTileOn = new TileVisual { color = new Color(1f, 0.55f, 0.1f) };
     [SerializeField] TileVisual _fireTileOff = new TileVisual { color = new Color(0.35f, 0.22f, 0.15f) };
@@ -147,6 +152,20 @@ public class BoardView : MonoBehaviour
 
     /// <summary>클리어 시 넘어갈 씬 이름. 레벨 데이터에 지정이 없으면 빈 문자열.</summary>
     public string NextScene => _level != null ? _level.nextScene : string.Empty;
+
+    /// <summary>이 판이 보고 있는 레벨. 씬 뷰에서 벽을 칠하는 에디터 도구가 쓴다.</summary>
+    public LevelData Level => _level;
+
+    /// <summary>칠할 수 있는 벽 그림의 종류 수. 팔레트에 이만큼 뜬다.</summary>
+    public int BlockWallKindCount => _blockWalls != null ? _blockWalls.Length : 0;
+
+    /// <summary>팔레트 버튼에 쓸 대표 그림. 위 레이어가 비어 있으면 바닥 레이어를 쓴다.</summary>
+    public Sprite BlockWallThumbnail(int kind)
+    {
+        var visual = BlockWallVisual(kind);
+        if (visual == null) return null;
+        return visual.sprite != null ? visual.sprite : visual.baseSprite;
+    }
 
     /// <summary>Awake에서 맵을 만들어 두면 다른 컴포넌트의 Start에서 안전하게 조회할 수 있다.</summary>
     void Awake() => BuildMap();
@@ -520,6 +539,8 @@ public class BoardView : MonoBehaviour
             }
         }
 
+        SpawnOutsideBlockWalls(container);
+
         // 아직 아무 수도 두지 않았으므로 0턴 기준으로 보여준다.
         // 첫 이동인 1턴 기준으로 미리 켜 두면 1턴이 시작될 때 바뀔 게 없어서 첫 턴만 깜빡임이 빠진다.
         // 매 턴 "직전 턴 상태를 보고 있다가 턴이 시작되면서 뒤집힌다"는 규칙을 1턴에도 그대로 맞춘 것이다.
@@ -529,11 +550,61 @@ public class BoardView : MonoBehaviour
         _settleAnimations = false;
     }
 
+    /// <summary>
+    /// 판 밖에 칠한 벽. 판 둘레를 꾸미는 용도라 순전히 장식이다.
+    ///
+    /// 이동에는 영향이 없다. GridMap 이 판 밖 항목을 _tiles 에 넣지 않고,
+    /// 애초에 판 가장자리를 InBounds 가 막고 있어 플레이어가 나갈 수 없다.
+    /// _markers 에는 들어가지만 RefreshForTurn 이 보는 _map.Get 은 판 밖에서 Floor 를 돌려주므로
+    /// 어떤 case 에도 걸리지 않고 조용히 지나간다.
+    ///
+    /// 판 안쪽은 위의 이중 루프가 이미 그렸으므로 여기서는 밖만 훑는다.
+    /// </summary>
+    void SpawnOutsideBlockWalls(Transform container)
+    {
+        if (_level.blockWalls == null) return;
+
+        foreach (var wall in _level.blockWalls)
+        {
+            var cell = wall.cell;
+
+            if (_map.InBounds(cell)) continue;
+            if (_markers.ContainsKey(cell)) continue;   // 같은 칸이 두 번 들어 있어도 한 번만 그린다
+
+            // 받침을 먼저 깔아야 마커가 그 위에 얹힌다. 판 안쪽과 같은 순서다.
+            SpawnBase(container, cell);
+            SpawnMarker(container, cell, TileType.BlockWall);
+        }
+    }
+
+    /// <summary>
+    /// 칸마다 그림이 다른 타일을 위한 것. 드래그로 칠한 벽만 여기서 갈라지고
+    /// 나머지는 종류만 보는 아래의 VisualOf 로 그대로 넘어간다.
+    /// </summary>
+    TileVisual VisualOf(TileType type, Vector2Int cell)
+    {
+        if (type == TileType.BlockWall) return BlockWallVisual(_map.GetBlockWallKind(cell));
+        return VisualOf(type);
+    }
+
+    /// <summary>
+    /// 배열이 비었거나 인덱스가 범위를 벗어나면 일반 벽으로 떨어뜨린다.
+    /// 그림을 아직 안 넣었어도 판이 터지지 않고 벽처럼 보이게 하려는 것이다.
+    /// </summary>
+    TileVisual BlockWallVisual(int kind)
+    {
+        if (_blockWalls == null || _blockWalls.Length == 0) return _wall;
+        return _blockWalls[Mathf.Clamp(kind, 0, _blockWalls.Length - 1)] ?? _wall;
+    }
+
     TileVisual VisualOf(TileType type)
     {
         switch (type)
         {
             case TileType.Wall: return _wall;
+
+            // 칸을 모르는 경로로 들어온 경우. 첫 번째 그림으로 그린다.
+            case TileType.BlockWall: return BlockWallVisual(0);
             case TileType.BreakableWall: return _breakableWall;
             case TileType.PushableWall: return _pushableWall;
             case TileType.FireTile: return _fireTileOff;
@@ -681,6 +752,12 @@ public class BoardView : MonoBehaviour
             visual.sprite != null || visual.controller != null || visual.baseSprite == null;
 
         ApplyAnimation(marker, visual.controller);
+
+        // 머무를 컨트롤러가 없으면 방금 돌던 전환이 마지막 프레임을 m_Sprite 에 남겨놓고 끝난다.
+        // Animator 를 떼도 그 그림은 그대로라 여기서 정지 스프라이트로 되돌려야 한다.
+        // 안 그러면 머무는 모습이 전환 클립의 마지막 프레임과 우연히 같은지에 달리게 된다.
+        // 컨트롤러가 있으면 그쪽이 매 프레임 덮어쓰므로 건드리지 않는다.
+        if (visual.controller == null && visual.sprite != null) marker.Renderer.sprite = visual.sprite;
     }
 
     /// <summary>
@@ -868,7 +945,7 @@ public class BoardView : MonoBehaviour
         var marker = new Marker { Renderer = sr, Base = floor };
         _markers[cell] = marker;
 
-        Apply(marker, VisualOf(type), cell);
+        Apply(marker, VisualOf(type, cell), cell);
     }
 
     /// <summary>

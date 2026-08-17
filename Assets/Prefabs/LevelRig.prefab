@@ -1508,6 +1508,37 @@ MonoBehaviour:
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
+  _blockWalls:
+  - color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 7399533318584292489, guid: 122405e0e8b7c184490f9da3055ad207, type: 3}
+    controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
+    label: 
+    labelColor: {r: 1, g: 1, b: 1, a: 1}
+    labelSize: 4
+  - color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 2951363044561301868, guid: 221a364015f7a164fa925392a295b304, type: 3}
+    controller: {fileID: 0}
+    enterController: {fileID: 0}
+    enterDuration: 0
+    offset: {x: 0, y: 0}
+    scale: 1
+    baseSprite: {fileID: 0}
+    baseColor: {r: 1, g: 1, b: 1, a: 1}
+    baseController: {fileID: 0}
+    baseOffset: {x: 0, y: 0}
+    baseScale: 1
+    label: 
+    labelColor: {r: 1, g: 1, b: 1, a: 1}
+    labelSize: 4
   _pushableWall:
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 5236466609331540025, guid: e579a1892e9ca8649945c791eba9ac53, type: 3}
@@ -1686,13 +1717,13 @@ MonoBehaviour:
     labelSize: 4
   _frozen:
     color: {r: 1, g: 1, b: 1, a: 1}
-    sprite: {fileID: -8054237569617448567, guid: 669670bba61db194da93195edd89bfa0, type: 3}
+    sprite: {fileID: -1859803506, guid: 41c258d795f6178478546c4c178da158, type: 3}
     controller: {fileID: 0}
-    enterController: {fileID: 0}
+    enterController: {fileID: 9100000, guid: f61e3fa28f001334ba1d5af8fbb1a2a3, type: 2}
     enterDuration: 0
     offset: {x: 0, y: 0}
     scale: 1
-    baseSprite: {fileID: 0}
+    baseSprite: {fileID: -9171819887739478639, guid: 885dfc64668a9e941baf01df4e123e64, type: 3}
     baseColor: {r: 1, g: 1, b: 1, a: 1}
     baseController: {fileID: 0}
     baseOffset: {x: 0, y: 0}
@@ -1796,7 +1827,7 @@ MonoBehaviour:
     label: 
     labelColor: {r: 1, g: 1, b: 1, a: 1}
     labelSize: 4
-  _markerScale: 0.9
+  _markerScale: 1
 --- !u!1 &7394338742797849791
 GameObject:
   m_ObjectHideFlags: 0

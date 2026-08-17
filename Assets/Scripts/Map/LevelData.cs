@@ -22,6 +22,15 @@ public struct IceWallData
     public int meltTurn;
 }
 
+[System.Serializable]
+public struct BlockWallData
+{
+    public Vector2Int cell;
+
+    [Tooltip("BoardView 의 Block Walls 배열 인덱스. 벽 그림의 종류를 고른다")]
+    public int kind;
+}
+
 /// <summary>레벨 하나의 맵 데이터. 레벨마다 에셋을 하나씩 만들어 인스펙터에서 찍는다.</summary>
 [CreateAssetMenu(fileName = "Level", menuName = "Proto/Level Data")]
 public class LevelData : ScriptableObject
@@ -39,6 +48,10 @@ public class LevelData : ScriptableObject
 
     [Tooltip("밀리는 벽 - 부딪히면 막힐 때까지 밀려난다. 다른 타일 위에 얹히므로 밑의 타일은 남는다")]
     public List<Vector2Int> pushableWalls = new List<Vector2Int>();
+
+    [Tooltip("드래그로 칠하는 벽 - 통과 불가, 피해 없음. 손으로 찍지 말고 " +
+             "씬에서 Board 를 고른 뒤 인스펙터의 '벽 칠하기' 를 켜고 마우스로 끌어서 그린다")]
+    public List<BlockWallData> blockWalls = new List<BlockWallData>();
 
     [Header("불 타일 - 통과 가능, 활성일 때만 피해. 항목마다 깜빡임(짝/홀)과 상시 활성 중에 고른다")]
     [Tooltip("활성일 때 밟으면 HP 1")]

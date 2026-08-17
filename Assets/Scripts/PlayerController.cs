@@ -338,6 +338,7 @@ public class PlayerController : MonoBehaviour
             // 얼음 계열도 통과 불가라 부딪히면 일반 벽과 같은 정지음을 낸다.
             // IceWall 은 아직 안 녹은 얼음 벽, Frozen 은 지나간 물이 얼어붙은 칸이다.
             case TileType.Wall:
+            case TileType.BlockWall:
             case TileType.IceWall:
             case TileType.Frozen:
                 Play(Sfx.WallHit);

@@ -54,6 +54,12 @@ public enum TileType
     Frozen,
 
     Goal,
+
+    /// <summary>
+    /// 드래그로 칠하는 벽 - 통과 불가, 피해 없음. 일반 벽과 규칙은 같고 그림만 여러 종류다.
+    /// 어떤 그림인지는 칸마다 kind 로 따로 들고 있어 GridMap.GetBlockWallKind 로 물어본다.
+    /// </summary>
+    BlockWall,
 }
 
 /// <summary>

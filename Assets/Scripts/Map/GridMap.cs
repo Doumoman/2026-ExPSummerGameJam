@@ -25,6 +25,9 @@ public class GridMap
     /// <summary>밀리는 벽의 현재 위치. _tiles 를 덮어쓰지 않고 그 위에 얹히므로 밑의 타일이 그대로 남는다.</summary>
     readonly HashSet<Vector2Int> _pushableWalls = new HashSet<Vector2Int>();
 
+    /// <summary>드래그로 칠한 벽의 그림 종류. 막는 규칙은 다 같고 보이는 것만 칸마다 다르다.</summary>
+    readonly Dictionary<Vector2Int, int> _blockWallKind = new Dictionary<Vector2Int, int>();
+
     public int Width { get; }
     public int Height { get; }
 
@@ -36,6 +39,21 @@ public class GridMap
 
         Paint(data.walls, TileType.Wall);
         Paint(data.breakableWalls, TileType.BreakableWall);
+
+        // 벽끼리 모아 둔다. 칸마다 그림 종류가 달라서 Paint 를 못 쓰고 직접 돈다.
+        if (data.blockWalls != null)
+        {
+            foreach (var w in data.blockWalls)
+            {
+                // 그림 종류는 판 밖이라도 기억해 둔다. 판 밖 벽을 그릴 때 BoardView 가 물어본다.
+                _blockWallKind[w.cell] = w.kind;
+
+                // 지도에는 판 안쪽만 넣는다. 판 밖은 장식일 뿐이고,
+                // 어차피 판 가장자리를 InBounds 가 막고 있어 통행에는 영향이 없다.
+                if (!InBounds(w.cell)) continue;
+                _tiles[w.cell.x, w.cell.y] = TileType.BlockWall;
+            }
+        }
 
         PaintFireTiles(data.fireTiles, TileType.FireTile);
         PaintFireTiles(data.deadlyFireTiles, TileType.FireTileDeadly);
@@ -102,6 +120,7 @@ public class GridMap
         switch (_tiles[c.x, c.y])
         {
             case TileType.Wall:
+            case TileType.BlockWall:
             case TileType.BreakableWall:
             case TileType.IceWall:
             case TileType.Frozen:
@@ -159,6 +178,12 @@ public class GridMap
 
     /// <summary>얼음 벽이 녹는 턴. 얼음 벽이 아니면 -1.</summary>
     public int GetMeltTurn(Vector2Int c) => _iceMeltTurn.TryGetValue(c, out int t) ? t : -1;
+
+    /// <summary>
+    /// 드래그로 칠한 벽의 그림 종류. 그 벽이 아니면 0.
+    /// 없을 때 -1 이 아니라 0 인 것은 이 값이 곧바로 배열 인덱스로 쓰이기 때문이다.
+    /// </summary>
+    public int GetBlockWallKind(Vector2Int c) => _blockWallKind.TryGetValue(c, out int k) ? k : 0;
 
     /// <summary>불 타일이 해당 턴에 활성인지. 불 타일이 아니면 false.</summary>
     public bool IsFireTileActive(Vector2Int c, int turn)

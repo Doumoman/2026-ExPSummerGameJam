@@ -23,6 +23,13 @@ public class BoardViewEditor : Editor
 
         EditorGUILayout.Space();
 
+        BlockWallPainter.DrawInspector(board);
+
+        EditorGUILayout.Space();
+
         DrawDefaultInspector();
     }
+
+    /// <summary>Board 가 선택돼 있는 동안만 씬 뷰에서 벽을 칠할 수 있다.</summary>
+    void OnSceneGUI() => BlockWallPainter.OnSceneGUI((BoardView)target);
 }
